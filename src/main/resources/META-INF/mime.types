@@ -1,0 +1,4 @@
+# the format is <mime type> <space separated file extensions>
+text/xml xml XML
+text/shell sh bash zsh
+text/markdown md markdown
