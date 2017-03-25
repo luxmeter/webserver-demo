@@ -11,7 +11,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class Directory {
+/**
+ * Model representing a directory with all of its files
+ * and subdirectories which are also of this type.
+ * Useful when a client requests to see the content of a directory and its subdirectories.
+ */
+final class Directory {
     private Directory parent;
     private List<Path> files = new ArrayList<>();
     private List<Directory> subDirectories = new ArrayList<>();
@@ -21,11 +26,15 @@ class Directory {
 
     }
 
+    /**
+     * @param absoluteDirPath system path to the directory
+     * @return {@link} a {@link Directory} object which can be used to list all files of the given path.
+     */
     public static @Nonnull Directory listFiles(@Nonnull Path absoluteDirPath) {
         return listFiles(null, absoluteDirPath);
     }
 
-    public static @Nonnull Directory listFiles(@Nullable Directory parent, @Nonnull Path absoluteDirPath) {
+    private static @Nonnull Directory listFiles(@Nullable Directory parent, @Nonnull Path absoluteDirPath) {
         Directory directory = new Directory();
         directory.parent = parent;
         directory.path = absoluteDirPath;
@@ -34,6 +43,7 @@ class Directory {
                 if (p.toFile().isFile()) {
                     directory.files.add(p);
                 } else {
+                    // TODO should exclude symlinks to prevent endless recursion
                     directory.subDirectories.add(listFiles(directory, p));
                 }
             }
@@ -57,7 +67,12 @@ class Directory {
         return Collections.unmodifiableList(subDirectories);
     }
 
+    /**
+     * @param rootDir The root directory; if none is given, the absolute path is shown.
+     * @return List of all files and directories relatively to given root directory.
+     */
     public String toString(@Nullable Path rootDir) {
+        // StringBuilder is not required since the compiler uses it under the hood
         String output = files.stream()
                 .map(p -> rootDir != null ? rootDir.relativize(p) : p)
                 .map(Path::toString)
@@ -71,6 +86,9 @@ class Directory {
         return output;
     }
 
+    /**
+     * @return the absolute system path of this directory
+     */
     public String toString() {
         return this.path.toString();
     }

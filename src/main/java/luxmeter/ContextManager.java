@@ -7,7 +7,16 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Objects;
 
-public final class ContextManager implements HttpHandler {
+/**
+ * Decorator for a {@link HttpHandler} providing following features:
+ * <p>
+ * Handles {@link RequestException}s by sending an appropriate
+ * HTTP status messages to the client and logging the exception.
+ * Additionally, it ensures that the resources hold by the {@link HttpExchange} object are closed
+ * when the processing is finished.
+ * </p>
+ */
+final class ContextManager implements HttpHandler {
     private final HttpHandler handler;
 
     private ContextManager(@Nonnull HttpHandler handler) {

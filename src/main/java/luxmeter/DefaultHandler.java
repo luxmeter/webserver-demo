@@ -16,10 +16,17 @@ import java.nio.file.Path;
 import java.util.EnumSet;
 import java.util.Objects;
 
-import static luxmeter.Directory.listFiles;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
-public class DefaultHandler implements HttpHandler {
+/**
+ * Simple HttpHandler serving static files:
+ * <ul>
+ *     <li>Can process GET and HEAD requests</li>
+ *     <li>Lists recursively all files and subdirectories if the request URL points to a directory</li>
+ *     <li>Can process following header-fields: ETag, If-Non-Match, If-Modified-Since</li>
+ * </ul>
+ */
+final class DefaultHandler implements HttpHandler {
 
     public static final int NO_BODY_CONTENT = -1;
 
@@ -51,7 +58,7 @@ public class DefaultHandler implements HttpHandler {
             validateFile(fileOrDirectory);
 
             if (fileOrDirectory.isDirectory()) {
-                listDirectory(exchange, requestMethod, absolutePath);
+                listFiles(exchange, requestMethod, absolutePath);
             }
             // is file
             else {
@@ -93,10 +100,11 @@ public class DefaultHandler implements HttpHandler {
         }
     }
 
-    private void listDirectory(@Nonnull HttpExchange exchange,
-                               @Nonnull RequestMethod requestMethod,
-                               @Nonnull Path absolutePath) throws IOException {
-        Directory directory = listFiles(absolutePath);
+    private void listFiles(@Nonnull HttpExchange exchange,
+                           @Nonnull RequestMethod requestMethod,
+                           @Nonnull Path absolutePath) throws IOException {
+        // TODO render to HTML page
+        Directory directory = Directory.listFiles(absolutePath);
         String output = directory.toString(rootDir);
         long responseLength = output.length();
         if (requestMethod == RequestMethod.HEAD) {
