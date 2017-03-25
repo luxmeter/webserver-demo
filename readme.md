@@ -4,10 +4,9 @@ This is a demo of a simple webserver being only capable of serving static files 
 It is not meant to be used in any environment. *Its only purpose is to show good coding practices*.
 
 **Features**:
-* Understands GET, HEAD and POST methods
+* Understands GET and HEAD methods
+    * Lists recursively all files and subdirectories if the request uri points to a directory
 * Understands ETag, If-Non-Match, If-Modified-Since header-fields
-* Can list all files and subdirectories in a particular directory
-
 
 ## Usage
 
