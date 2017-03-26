@@ -1,6 +1,5 @@
 package luxmeter.filter;
 
-import com.sun.net.httpserver.Filter;
 import com.sun.net.httpserver.HttpExchange;
 
 import java.io.File;
@@ -12,18 +11,24 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-import static luxmeter.model.HeaderFieldContants.IF_MODIFIED_SINCE;
 import static luxmeter.Util.*;
+import static luxmeter.model.HeaderFieldContants.IF_MODIFIED_SINCE;
+import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
 
-public class ModifiedSinceFilter extends Filter {
-    private final Path rootDir;
-
+public class ModifiedSinceFilter extends AbstractFilter {
     public ModifiedSinceFilter(Path rootDir) {
-        this.rootDir = rootDir;
+        super(rootDir);
     }
 
     @Override
     public void doFilter(HttpExchange exchange, Chain chain) throws IOException {
+        // RCF: A recipient MUST ignore If-Modified-Since if the request contains an
+        // If-None-Match header field [...]
+        if (exchange.getResponseHeaders().containsKey(IF_NONE_MATCH)) {
+            continueChain(exchange, chain);
+            return;
+        }
+
         Optional<String> modifiedSince = getHeaderFieldValues(
                 exchange.getRequestHeaders(), IF_MODIFIED_SINCE).stream().findFirst();
         if (modifiedSince.isPresent()) {
@@ -37,16 +42,11 @@ public class ModifiedSinceFilter extends Filter {
                 exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
             }
             else {
-                chain.doFilter(exchange);
+                continueChain(exchange, chain);
             }
         }
         else {
-            chain.doFilter(exchange);
+            continueChain(exchange, chain);
         }
-    }
-
-    @Override
-    public String description() {
-        return getClass().getName();
     }
 }

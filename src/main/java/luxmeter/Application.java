@@ -1,7 +1,10 @@
 package luxmeter;
 
-import com.sun.net.httpserver.*;
-import luxmeter.filter.EtagFilter;
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import luxmeter.filter.IfMatchFilterWithoutStar;
+import luxmeter.filter.IfNoneMatchFilterWithoutStar;
 import luxmeter.filter.ModifiedSinceFilter;
 import luxmeter.filter.RequestValidationFilter;
 import luxmeter.handler.ContextManager;
@@ -25,7 +28,8 @@ public class Application {
         // TODO add spring injection to dynamically load filterer
         context.getFilters().add(new RequestValidationFilter(rootDir));
         context.getFilters().add(new ModifiedSinceFilter(rootDir));
-        context.getFilters().add(new EtagFilter(rootDir));
+        context.getFilters().add(new IfNoneMatchFilterWithoutStar(rootDir));
+        context.getFilters().add(new IfMatchFilterWithoutStar(rootDir));
         server.setExecutor(Executors.newCachedThreadPool());
         server.start();
     }

@@ -8,19 +8,20 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Paths;
 
+import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
-public class EtagFilterTest {
-    private static final int NO_ACTIONS_TAKEN = 0;
+public class IfNoneMatchFilterWithoutStarTest {
 
-    private EtagFilter testUnit = new EtagFilter(Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
+    private IfNoneMatchFilterWithoutStar testUnit = new IfNoneMatchFilterWithoutStar(
+            Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
 
     @Test
     public void shouldNotSendSameFileTwice() throws IOException {
         HttpExchangeMock httpExchange = new HttpExchangeMock(
                 URI.create("http://localhost:8080/some_file.md"), "GET");
-        httpExchange.getRequestHeaders().add("If-none-match", "ECCD66D6803584426248217359708D8C");
+        httpExchange.getRequestHeaders().add(IF_NONE_MATCH, "ECCD66D6803584426248217359708D8C");
         testUnit.doFilter(httpExchange, null);
         assertThat(httpExchange.getResponseCode(), equalTo(HttpURLConnection.HTTP_NOT_MODIFIED));
     }

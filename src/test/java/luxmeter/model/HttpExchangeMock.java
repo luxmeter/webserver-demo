@@ -24,7 +24,7 @@ public class HttpExchangeMock extends HttpExchange {
     private final Headers responseHeaders;
     private final ByteArrayOutputStream outputStream;
     private final ByteArrayInputStream inputStream;
-    private int responseCode;
+    private int responseCode = -1;
 
     public HttpExchangeMock(URI requestURI, String requestMethod) {
         this.requestURI = requestURI;

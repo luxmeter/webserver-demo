@@ -1,6 +1,5 @@
 package luxmeter.filter;
 
-import com.sun.net.httpserver.Filter;
 import com.sun.net.httpserver.HttpExchange;
 import luxmeter.model.RequestException;
 import luxmeter.model.RequestMethod;
@@ -18,12 +17,9 @@ import static luxmeter.Util.getAbsoluteSystemPath;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 
-// TODO add etag validation (w/etag is not supported)
-public class RequestValidationFilter extends Filter {
-    private final Path rootDir;
-
+public class RequestValidationFilter extends AbstractFilter {
     public RequestValidationFilter(Path rootDir) {
-        this.rootDir = rootDir;
+        super(rootDir);
     }
 
     @Override
@@ -39,15 +35,15 @@ public class RequestValidationFilter extends Filter {
                 File fileOrDirectory = absolutePath.toFile();
                 checkFileOrDirectoryExists(fileOrDirectory);
             }
-
-            // if no exception has been thrown yet:
-            if (chain != null) {
-                chain.doFilter(exchange);
-            }
         }
         catch (RequestException e) {
             e.printStackTrace();
             exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
+        }
+
+        // if no exception has been thrown yet:
+        if (exchange.getResponseCode() == -1) {
+            continueChain(exchange, chain);
         }
     }
 
@@ -67,10 +63,5 @@ public class RequestValidationFilter extends Filter {
         if (!fileOrDirectory.exists()) {
             throw new RequestException(HttpURLConnection.HTTP_NOT_FOUND);
         }
-    }
-
-    @Override
-    public String description() {
-        return getClass().getName();
     }
 }

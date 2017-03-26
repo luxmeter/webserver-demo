@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 public final class Util {
     public static final int NO_BODY_CONTENT = -1;
+    public static final int NO_ACTIONS_TAKEN = -1;
 
     public static @Nonnull
     Path getAbsoluteSystemPath(Path rootDir, @Nonnull URI uri) {
