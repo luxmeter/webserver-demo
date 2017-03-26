@@ -3,9 +3,12 @@ package luxmeter.handler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import luxmeter.model.RequestException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.Objects;
 
 import static luxmeter.Util.NO_BODY_CONTENT;
@@ -21,6 +24,7 @@ import static luxmeter.Util.NO_BODY_CONTENT;
  */
 public final class ContextManager implements HttpHandler {
     private final HttpHandler handler;
+    private static final Logger logger = LoggerFactory.getLogger(ContextManager.class);
 
     private ContextManager(@Nonnull HttpHandler handler) {
         this.handler = handler;
@@ -38,13 +42,13 @@ public final class ContextManager implements HttpHandler {
             handler.handle(exchange);
         }
         catch (RequestException e) {
-            e.printStackTrace();
+            logger.warn(String.format(
+                    "Unable to further process the request. Returning with %s.:  ", e.getStatusCode()), e);
             exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
-            throw e;
         }
         catch (Exception e) {
-            // otherwise it is swallowed
-            e.printStackTrace();
+            logger.warn("Caught unexpected exception: ", e);
+            exchange.sendResponseHeaders(HttpURLConnection.HTTP_INTERNAL_ERROR, NO_BODY_CONTENT);
         }
         finally {
             exchange.getRequestBody().close();

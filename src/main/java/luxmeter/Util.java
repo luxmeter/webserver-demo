@@ -1,6 +1,8 @@
 package luxmeter;
 
 import com.sun.net.httpserver.Headers;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.xml.bind.DatatypeConverter;
@@ -21,6 +23,7 @@ import java.util.stream.Stream;
 public final class Util {
     public static final int NO_BODY_CONTENT = -1;
     public static final int NO_ACTIONS_TAKEN = -1;
+    private static final Logger logger = LoggerFactory.getLogger(Util.class);
 
     public static @Nonnull
     Path getAbsoluteSystemPath(Path rootDir, @Nonnull URI uri) {
@@ -50,7 +53,7 @@ public final class Util {
                 digest.update(array);
             }
         } catch (NoSuchAlgorithmException | IOException e) {
-            e.printStackTrace();
+            logger.warn("Unable to generate hash code:  ", e);
         }
 
         String hashCode = null;

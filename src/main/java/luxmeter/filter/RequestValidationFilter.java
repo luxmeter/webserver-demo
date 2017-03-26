@@ -4,6 +4,8 @@ import com.sun.net.httpserver.HttpExchange;
 import luxmeter.Util;
 import luxmeter.model.RequestException;
 import luxmeter.model.RequestMethod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -20,6 +22,8 @@ import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 
 public class RequestValidationFilter extends AbstractFilter {
+    private static final Logger logger = LoggerFactory.getLogger(RequestValidationFilter.class);
+
     public RequestValidationFilter(Path rootDir) {
         super(rootDir);
     }
@@ -38,7 +42,7 @@ public class RequestValidationFilter extends AbstractFilter {
                 checkFileOrDirectoryExists(fileOrDirectory);
             }
         } catch (RequestException e) {
-            e.printStackTrace();
+            logger.error(String.format("Request validation failed. Returning with %s.", e.getStatusCode()), e);
             exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
         }
 
