@@ -1,0 +1,20 @@
+webserver                   User Manuals                webserver
+
+
+NAME
+    webserver - Demo of a simple webserver.
+
+SYNOPSIS
+    java -jar webserver.jar [-rootdir=<DIR> ]
+
+DESCRIPTION
+      Demo of a simple webserver being only capable of serving
+      static files from a user defined directory. It is not
+      meant to be used in any environment. Its only purpose is
+      to show good coding practices.
+
+OPTIONS
+     --rootDir   The root directory of the server which is by
+                 default the current working directory.
+
+     --help      Shows this help page.
