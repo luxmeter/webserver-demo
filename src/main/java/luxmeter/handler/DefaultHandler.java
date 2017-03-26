@@ -49,6 +49,13 @@ public final class DefaultHandler implements HttpHandler {
                 sendFile(exchange, requestMethod, fileOrDirectory);
             }
         }
+        closeResources(exchange);
+    }
+
+    private void closeResources(HttpExchange exchange) throws IOException {
+        exchange.getRequestBody().close();
+        exchange.getResponseBody().close();
+        exchange.close();
     }
 
     private void sendFile(@Nonnull HttpExchange exchange,
