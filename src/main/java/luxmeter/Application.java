@@ -1,7 +1,6 @@
 package luxmeter;
 
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.*;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -15,7 +14,7 @@ public class Application {
         HttpHandler handler = new DefaultHandler(Paths.get(System.getProperty("user.dir")));
         // handles RequestExceptions and frees Input- and Output-streams
         handler = ContextManager.decorate(handler);
-        server.createContext("/", handler);
+        HttpContext context = server.createContext("/", handler);
         server.setExecutor(Executors.newCachedThreadPool());
         server.start();
     }

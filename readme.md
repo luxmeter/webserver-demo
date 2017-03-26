@@ -1,4 +1,4 @@
-# Java Webserver Demo
+# Java Webserver Demo2
 
 This is a demo of a simple webserver being only capable of serving static files from a user defined directory.
 It is not meant to be used in any environment. *Its only purpose is to show good coding practices*.

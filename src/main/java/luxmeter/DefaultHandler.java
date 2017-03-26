@@ -6,6 +6,7 @@ import com.sun.net.httpserver.HttpHandler;
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,16 +14,20 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 /**
  * Simple HttpHandler serving static files:
  * <ul>
- *     <li>Can process GET and HEAD requests</li>
- *     <li>Lists recursively all files and subdirectories if the request URL points to a directory</li>
- *     <li>Can process following header-fields: ETag, If-Non-Match, If-Modified-Since</li>
+ * <li>Can process GET and HEAD requests</li>
+ * <li>Lists recursively all files and subdirectories if the request URL points to a directory</li>
+ * <li>Can process following header-fields: ETag, If-Non-Match, If-Modified-Since</li>
  * </ul>
  */
 final class DefaultHandler implements HttpHandler {
@@ -48,6 +53,8 @@ final class DefaultHandler implements HttpHandler {
 
         validateRequestMethod(requestMethod);
 
+        // TODO add etag validation (w/etag is not supported)
+
         if (EnumSet.of(RequestMethod.HEAD, RequestMethod.GET).contains(requestMethod)) {
             Path absolutePath = getAbsoluteSystemPath(exchange.getRequestURI());
             File fileOrDirectory = absolutePath.toFile();
@@ -59,7 +66,21 @@ final class DefaultHandler implements HttpHandler {
             }
             // is file
             else {
-                sendFileContent(exchange, requestMethod, fileOrDirectory);
+                String hashCode = generateHashCode(fileOrDirectory);
+                if (hashCode != null) {
+                    exchange.getResponseHeaders().add("ETag", hashCode);
+                }
+                boolean hashCodeIsUnchanged = exchange.getRequestHeaders()
+                        .getOrDefault("If-none-match", Collections.emptyList()).stream()
+                        .findFirst()
+                        .map(requestedHashCode -> hashCode != null && Objects.equals(requestedHashCode, hashCode))
+                        .orElse(false);
+                if (hashCodeIsUnchanged) {
+                    exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
+                }
+                else {
+                    sendFile(exchange, requestMethod, fileOrDirectory);
+                }
             }
         }
     }
@@ -76,26 +97,55 @@ final class DefaultHandler implements HttpHandler {
         }
     }
 
-    private void sendFileContent(@Nonnull HttpExchange exchange,
-                                 @Nonnull RequestMethod requestMethod,
-                                 @Nonnull File fileOrDirectory) throws IOException {
-        long responseLength = fileOrDirectory.length();
-        String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(fileOrDirectory);
+    private void sendFile(@Nonnull HttpExchange exchange,
+                          @Nonnull RequestMethod requestMethod,
+                          @Nonnull File file) throws IOException {
+        long responseLength = file.length();
+        String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file);
         exchange.getResponseHeaders().add("Content-Type", contentType);
+
         if (requestMethod == RequestMethod.HEAD) {
-            exchange.getResponseHeaders().add("Content-Length", ""+responseLength);
+            exchange.getResponseHeaders().add("Content-Length", "" + responseLength);
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, NO_BODY_CONTENT);
         }
         // is GET
         else {
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, responseLength);
-            try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(fileOrDirectory))) {
+            try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
                 // Charset charset = Charset.forName(new TikaEncodingDetector().guessEncoding(in));
                 for (int data = in.read(); data != -1; data = in.read()) {
                     exchange.getResponseBody().write(data);
                 }
             }
         }
+    }
+
+    // TODO it is not necessary to generate the hash again if the file didn't change since the last time we send it
+    // --> add caching of meta data (last modified date can be retrieved from the file system)
+    private String generateHashCode(File file) {
+        MessageDigest digest = null;
+        // why do stream twice for a single resource?
+        // --> we can't generate the hashCode adhoc when we stream the data to the client
+        // since the hash code needs to be send first in the header response
+        // --> to avoid this stream we could read all the content of the resource first into memory
+        // but no one knows how big this data is.
+        // so better stream twice if necessary
+        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
+            byte[] array = new byte[4];
+            digest = MessageDigest.getInstance("MD5");
+            for (int data = in.read(array); data != -1; data = in.read()) {
+                // we better read a single byte since this will crop off all other left-handed bits
+                digest.update(array);
+            }
+        } catch (NoSuchAlgorithmException | IOException e) {
+            e.printStackTrace();
+        }
+
+        String hashCode = null;
+        if (digest != null) {
+            hashCode = DatatypeConverter.printHexBinary(digest.digest());
+        }
+        return hashCode;
     }
 
     private void listFiles(@Nonnull HttpExchange exchange,
@@ -107,7 +157,7 @@ final class DefaultHandler implements HttpHandler {
         long responseLength = output.length();
         if (requestMethod == RequestMethod.HEAD) {
             exchange.getResponseHeaders().add("Content-Type", "text/plain");
-            exchange.getResponseHeaders().add("Content-Length", ""+responseLength);
+            exchange.getResponseHeaders().add("Content-Length", "" + responseLength);
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, NO_BODY_CONTENT);
         }
         // is GET
@@ -117,7 +167,8 @@ final class DefaultHandler implements HttpHandler {
         }
     }
 
-    private @Nonnull Path getAbsoluteSystemPath(@Nonnull URI uri) {
+    private @Nonnull
+    Path getAbsoluteSystemPath(@Nonnull URI uri) {
         // the url could also look like http://localhost:8080 instead of http://localhost:8080/
         String relativePath = uri.getPath();
         if (uri.getPath().length() > 0) {
