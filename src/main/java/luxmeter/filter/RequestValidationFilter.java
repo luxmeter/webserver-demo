@@ -1,6 +1,7 @@
 package luxmeter.filter;
 
 import com.sun.net.httpserver.HttpExchange;
+import luxmeter.Util;
 import luxmeter.model.RequestException;
 import luxmeter.model.RequestMethod;
 
@@ -14,6 +15,7 @@ import java.util.EnumSet;
 
 import static luxmeter.Util.NO_BODY_CONTENT;
 import static luxmeter.Util.getAbsoluteSystemPath;
+import static luxmeter.model.HeaderFieldContants.CONNECTION;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 
@@ -35,21 +37,29 @@ public class RequestValidationFilter extends AbstractFilter {
                 File fileOrDirectory = absolutePath.toFile();
                 checkFileOrDirectoryExists(fileOrDirectory);
             }
-        }
-        catch (RequestException e) {
+        } catch (RequestException e) {
             e.printStackTrace();
             exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
         }
 
         // if no exception has been thrown yet:
         if (exchange.getResponseCode() == -1) {
+            // workaround
+            // no need to check other Connection values since the ServerImpl handles that already
+            Util.getHeaderFieldValues(exchange.getRequestHeaders(), CONNECTION).stream().findFirst()
+                    .filter("close"::equalsIgnoreCase)
+                    .ifPresent(value -> {
+                        // ServerImpl will close the connection when it finds this in the request
+                        // with exactly this strings
+                        exchange.getResponseHeaders().add(CONNECTION, "close");
+                    });
             continueChain(exchange, chain);
         }
     }
 
     private void checkNonNull(HttpExchange exchange) {
         if (exchange == null) {
-            throw  new RequestException(HttpURLConnection.HTTP_INTERNAL_ERROR);
+            throw new RequestException(HttpURLConnection.HTTP_INTERNAL_ERROR);
         }
     }
 

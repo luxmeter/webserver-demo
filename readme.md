@@ -5,8 +5,8 @@ It is not meant to be used in any environment. *Its only purpose is to show good
 
 **Features**:
 * Understands GET and HEAD methods
-    * Lists recursively all files and subdirectories if the request uri points to a directory
-* Understands ETag, If-Non-Match, If-Modified-Since header-fields
+    * Lists recursively all files and subdirectories if the URL points to a directory
+* Understands If-Match, If-Non-Match, If-Modified-Since header-fields *for all static files*
 
 ## Usage
 
@@ -22,6 +22,54 @@ showing a complete list of all available commands and options.
 `curl --verbose --get http://localhost:8080/index.html`
 
 Serves index.html if the file is available and shows a 404 error otherwise.
+
+**List files**
+
+```
+curl -v 'http://localhost:8080/src/test/resources' \
+-H 'Connection: close'
+```
+
+**If-None-Match: HTTP/1.1 304 Not Modified**
+
+```
+curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
+-H 'If-None-Match: ECCD66D6803584426248217359708D8C' \
+-H 'Connection: close'
+```
+
+**If-None-Match: HTTP/1.1 200 OK**
+
+```
+curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
+-H 'If-None-Match: abc' \
+-H 'Connection: close'
+```
+
+**If-Match fails: HTTP/1.1 412 Precondition Failed**
+
+```
+curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
+-H 'If-Match: abc' \
+-H 'Connection: close'
+```
+
+**If-Modified-Since: HTTP/1.1 304 Not Modified**
+
+```
+curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
+-H 'If-Modified-Since: Wed, 21 Oct 2015 07:28:00 GMT' \
+-H 'Connection: close'
+```
+
+
+**If-Modified-Since: HTTP/1.1 200 OK**
+
+```
+curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
+-H 'If-Modified-Since: Wed, 21 Oct 2099 07:28:00 GMT' \
+-H 'Connection: keep-alive'
+```
 
 ## Issues
 
