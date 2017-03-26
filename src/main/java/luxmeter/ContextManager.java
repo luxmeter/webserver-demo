@@ -30,6 +30,7 @@ final class ContextManager implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
+        Objects.requireNonNull(exchange);
         try {
             handler.handle(exchange);
         }
@@ -43,7 +44,8 @@ final class ContextManager implements HttpHandler {
             e.printStackTrace();
         }
         finally {
-            // closes also input and output streams
+            exchange.getRequestBody().close();
+            exchange.getResponseBody().close();
             exchange.close();
         }
     }

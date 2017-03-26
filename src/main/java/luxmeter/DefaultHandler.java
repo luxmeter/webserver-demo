@@ -14,7 +14,6 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.EnumSet;
-import java.util.Objects;
 
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
@@ -45,8 +44,6 @@ final class DefaultHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        Objects.requireNonNull(exchange);
-
         RequestMethod requestMethod = getEnum(RequestMethod.class, exchange.getRequestMethod().toUpperCase());
 
         validateRequestMethod(requestMethod);
@@ -93,6 +90,7 @@ final class DefaultHandler implements HttpHandler {
         else {
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, responseLength);
             try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(fileOrDirectory))) {
+                // Charset charset = Charset.forName(new TikaEncodingDetector().guessEncoding(in));
                 for (int data = in.read(); data != -1; data = in.read()) {
                     exchange.getResponseBody().write(data);
                 }
@@ -120,7 +118,11 @@ final class DefaultHandler implements HttpHandler {
     }
 
     private @Nonnull Path getAbsoluteSystemPath(@Nonnull URI uri) {
-        String relativePath = uri.getPath().substring(1); // get rid of the leading '/'
+        // the url could also look like http://localhost:8080 instead of http://localhost:8080/
+        String relativePath = uri.getPath();
+        if (uri.getPath().length() > 0) {
+            relativePath = uri.getPath().substring(1); // get rid of the leading '/'
+        }
         return rootDir.resolve(relativePath);
     }
 }

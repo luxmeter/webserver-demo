@@ -50,7 +50,7 @@ final class Directory {
         }
         // why bother the caller with the exception handling when it can't recover form it anyway?
         catch (IOException e) {
-            throw new IllegalStateException(String.format("Unable to list files from {}", absoluteDirPath), e);
+            throw new IllegalStateException(String.format("Unable to list files from %s", absoluteDirPath), e);
         }
         return directory;
     }
