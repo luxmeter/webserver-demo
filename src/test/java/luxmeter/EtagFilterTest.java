@@ -11,6 +11,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class EtagFilterTest {
+    private static final int NO_ACTIONS_TAKEN = 0;
+
     private EtagFilter testUnit = new EtagFilter(Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
 
     @Test

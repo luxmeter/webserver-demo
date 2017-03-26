@@ -13,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
+import static luxmeter.HeaderFieldContants.ETAG;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.Matchers.contains;
@@ -62,7 +63,7 @@ public class DefaultHandlerTest {
         HttpExchangeMock httpExchange = new HttpExchangeMock(
                 URI.create("http://localhost:8080/some_file.md"), "GET");
         testUnit.handle(httpExchange);
-        assertThat(httpExchange.responseHeaderToList(), hasItem("Etag: ECCD66D6803584426248217359708D8C"));
+        assertThat(httpExchange.responseHeaderToList(), hasItem(ETAG + ": ECCD66D6803584426248217359708D8C"));
     }
 
     private void checkBody(HttpExchangeMock httpExchange) {
@@ -80,7 +81,7 @@ public class DefaultHandlerTest {
         assertThat(responseHeader, contains(
                 equalToIgnoringCase("Content-Length: " + length),
                 equalToIgnoringCase("Content-Type: text/markdown"),
-                equalToIgnoringCase("Etag: ECCD66D6803584426248217359708D8C")));
+                equalToIgnoringCase(ETAG + ": ECCD66D6803584426248217359708D8C")));
         assertThat(httpExchange.getResponseCode(), Matchers.equalTo(HttpURLConnection.HTTP_OK));
     }
 }

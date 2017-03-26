@@ -13,9 +13,8 @@ import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.EnumSet;
 
-import static luxmeter.Util.NO_BODY_CONTENT;
-import static luxmeter.Util.generateHashCode;
-import static luxmeter.Util.getAbsoluteSystemPath;
+import static luxmeter.HeaderFieldContants.ETAG;
+import static luxmeter.Util.*;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 /**
@@ -58,7 +57,7 @@ final class DefaultHandler implements HttpHandler {
         exchange.getResponseHeaders().add("Content-Type", contentType);
         String hashCode = generateHashCode(file);
         if (hashCode != null) {
-            exchange.getResponseHeaders().add("ETag", hashCode);
+            exchange.getResponseHeaders().add(ETAG, hashCode);
         }
 
         if (requestMethod == RequestMethod.HEAD) {

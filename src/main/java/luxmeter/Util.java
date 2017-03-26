@@ -1,5 +1,7 @@
 package luxmeter;
 
+import com.sun.net.httpserver.Headers;
+
 import javax.annotation.Nonnull;
 import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedInputStream;
@@ -10,11 +12,17 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 public final class Util {
     public static final int NO_BODY_CONTENT = -1;
 
-    public static @Nonnull Path getAbsoluteSystemPath(Path rootDir, @Nonnull URI uri) {
+    public static @Nonnull
+    Path getAbsoluteSystemPath(Path rootDir, @Nonnull URI uri) {
         // the url could also look like http://localhost:8080 instead of http://localhost:8080/
         String relativePath = uri.getPath();
         if (uri.getPath().length() > 0) {
@@ -51,4 +59,43 @@ public final class Util {
         return hashCode;
     }
 
+
+    public static List<String> getHeaderFieldValues(@Nonnull Headers headers, @Nonnull String key) {
+        String allLowerCase = key.toLowerCase();
+        String allUpperCase = key.toUpperCase();
+        String onlyFirstUpper = onlyFirstToUpper(allLowerCase);   // preferred version of the JDK HttpServerImpl
+        String allFirstUpper = allFirstCharsToUpper(allLowerCase);   // preferred version of the standard
+
+        return Stream.of(allLowerCase, allUpperCase, onlyFirstUpper, allFirstUpper)
+                .filter(headers::containsKey).map(headers::get)
+                .findFirst()
+                .orElse(Collections.emptyList());
+    }
+
+    private static String allFirstCharsToUpper(String key) {
+        if (key.length() < 1) {
+            return key;
+        }
+        String allFirstUpper = onlyFirstToUpper(key);
+        Pattern compile = Pattern.compile("-([a-zA-Z])");
+        Matcher matcher = compile.matcher(key);
+        while (matcher.find()) {
+            String match = matcher.group(1).toUpperCase();
+            allFirstUpper = allFirstUpper.substring(0, matcher.start()+1)
+                    + match
+                    + allFirstUpper.substring((matcher.start() + 2));
+        }
+        return allFirstUpper;
+    }
+
+    private static String onlyFirstToUpper(String key) {
+        if (key.length() < 1) {
+            return key;
+        }
+        Pattern compile = Pattern.compile("^([a-zA-Z])");
+        Matcher matcher = compile.matcher(key);
+        matcher.find();
+        String firstChar = matcher.group(1).toUpperCase();
+        return firstChar + key.substring(1);
+    }
 }

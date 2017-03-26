@@ -7,12 +7,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Objects;
 
-import static luxmeter.Util.NO_BODY_CONTENT;
-import static luxmeter.Util.generateHashCode;
-import static luxmeter.Util.getAbsoluteSystemPath;
+import static luxmeter.HeaderFieldContants.ETAG;
+import static luxmeter.HeaderFieldContants.IF_NONE_MATCH;
+import static luxmeter.Util.*;
 
 class EtagFilter extends Filter {
 
@@ -28,10 +27,9 @@ class EtagFilter extends Filter {
         File fileOrDirectory = absolutePath.toFile();
         String hashCode = generateHashCode(fileOrDirectory);
         if (hashCode != null) {
-            exchange.getResponseHeaders().add("ETag", hashCode);
+            exchange.getResponseHeaders().add(ETAG, hashCode);
         }
-        boolean hashCodeIsUnchanged = exchange.getRequestHeaders()
-                .getOrDefault("If-none-match", Collections.emptyList()).stream()
+        boolean hashCodeIsUnchanged = getHeaderFieldValues(exchange.getRequestHeaders(), IF_NONE_MATCH).stream()
                 .findFirst()
                 .map(requestedHashCode -> hashCode != null && Objects.equals(requestedHashCode, hashCode))
                 .orElse(false);
