@@ -1,4 +1,4 @@
-package luxmeter;
+package luxmeter.filter;
 
 import com.sun.net.httpserver.Filter;
 import com.sun.net.httpserver.HttpExchange;
@@ -12,7 +12,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
-import static luxmeter.HeaderFieldContants.IF_MODIFIED_SINCE;
+import static luxmeter.model.HeaderFieldContants.IF_MODIFIED_SINCE;
 import static luxmeter.Util.*;
 
 public class ModifiedSinceFilter extends Filter {

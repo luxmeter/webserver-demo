@@ -1,6 +1,7 @@
-package luxmeter;
+package luxmeter.handler;
 
 import com.sun.net.httpserver.HttpHandler;
+import luxmeter.model.HttpExchangeMock;
 import org.hamcrest.Matchers;
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
-import static luxmeter.HeaderFieldContants.ETAG;
+import static luxmeter.model.HeaderFieldContants.ETAG;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.Matchers.contains;

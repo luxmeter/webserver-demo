@@ -1,4 +1,4 @@
-package luxmeter;
+package luxmeter.model;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpContext;

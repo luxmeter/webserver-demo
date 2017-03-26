@@ -1,5 +1,6 @@
-package luxmeter;
+package luxmeter.filter;
 
+import luxmeter.model.HttpExchangeMock;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -7,7 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Paths;
 
-import static luxmeter.HeaderFieldContants.IF_MODIFIED_SINCE;
+import static luxmeter.model.HeaderFieldContants.IF_MODIFIED_SINCE;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 

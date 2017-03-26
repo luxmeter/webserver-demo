@@ -1,4 +1,4 @@
-package luxmeter;
+package luxmeter.model;
 
 public class HeaderFieldContants {
     public static final String IF_NONE_MATCH = "If-None-Match";

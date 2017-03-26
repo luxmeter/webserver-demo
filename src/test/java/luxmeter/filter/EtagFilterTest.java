@@ -1,5 +1,6 @@
-package luxmeter;
+package luxmeter.filter;
 
+import luxmeter.model.HttpExchangeMock;
 import org.junit.Test;
 
 import java.io.IOException;

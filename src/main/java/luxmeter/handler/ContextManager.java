@@ -1,7 +1,8 @@
-package luxmeter;
+package luxmeter.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import luxmeter.model.RequestException;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -18,7 +19,7 @@ import static luxmeter.Util.NO_BODY_CONTENT;
  * when the processing is finished.
  * </p>
  */
-final class ContextManager implements HttpHandler {
+public final class ContextManager implements HttpHandler {
     private final HttpHandler handler;
 
     private ContextManager(@Nonnull HttpHandler handler) {

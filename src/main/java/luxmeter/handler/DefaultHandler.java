@@ -1,7 +1,9 @@
-package luxmeter;
+package luxmeter.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
+import luxmeter.model.Directory;
+import luxmeter.model.RequestMethod;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.Nonnull;
@@ -13,7 +15,7 @@ import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.EnumSet;
 
-import static luxmeter.HeaderFieldContants.ETAG;
+import static luxmeter.model.HeaderFieldContants.ETAG;
 import static luxmeter.Util.*;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
@@ -25,7 +27,7 @@ import static org.apache.commons.lang3.EnumUtils.getEnum;
  * <li>Can process following header-fields: ETag, If-Non-Match, If-Modified-Since</li>
  * </ul>
  */
-final class DefaultHandler implements HttpHandler {
+public final class DefaultHandler implements HttpHandler {
     private final Path rootDir;
 
     public DefaultHandler(@Nonnull Path rootDir) {

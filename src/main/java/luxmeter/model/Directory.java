@@ -1,4 +1,4 @@
-package luxmeter;
+package luxmeter.model;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
  * and subdirectories which are also of this type.
  * Useful when a client requests to see the content of a directory and its subdirectories.
  */
-final class Directory {
+public final class Directory {
     private Directory parent;
     private List<Path> files = new ArrayList<>();
     private List<Directory> subDirectories = new ArrayList<>();

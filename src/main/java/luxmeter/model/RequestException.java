@@ -1,6 +1,7 @@
-package luxmeter;
+package luxmeter.model;
 
 import com.sun.net.httpserver.HttpHandler;
+import luxmeter.handler.ContextManager;
 
 import javax.annotation.Nonnull;
 import java.net.HttpURLConnection;
@@ -10,7 +11,7 @@ import java.net.HttpURLConnection;
  * to handle validation violations in any {@link HttpHandler} in a more elegant and safer way.
  * @see ContextManager
  */
-final class RequestException extends RuntimeException {
+public final class RequestException extends RuntimeException {
     private final int statusCode;
 
     /**

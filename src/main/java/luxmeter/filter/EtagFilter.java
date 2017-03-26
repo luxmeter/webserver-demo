@@ -1,4 +1,4 @@
-package luxmeter;
+package luxmeter.filter;
 
 import com.sun.net.httpserver.Filter;
 import com.sun.net.httpserver.HttpExchange;
@@ -9,11 +9,11 @@ import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import static luxmeter.HeaderFieldContants.ETAG;
-import static luxmeter.HeaderFieldContants.IF_NONE_MATCH;
+import static luxmeter.model.HeaderFieldContants.ETAG;
+import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
 import static luxmeter.Util.*;
 
-class EtagFilter extends Filter {
+public class EtagFilter extends Filter {
 
     private final Path rootDir;
 

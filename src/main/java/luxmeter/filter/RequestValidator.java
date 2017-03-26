@@ -1,7 +1,9 @@
-package luxmeter;
+package luxmeter.filter;
 
 import com.sun.net.httpserver.Filter;
 import com.sun.net.httpserver.HttpExchange;
+import luxmeter.model.RequestException;
+import luxmeter.model.RequestMethod;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
