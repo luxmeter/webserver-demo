@@ -5,21 +5,17 @@ import com.sun.net.httpserver.HttpHandler;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URI;
 import java.nio.file.Path;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.Collections;
 import java.util.EnumSet;
-import java.util.Objects;
 
+import static luxmeter.Util.NO_BODY_CONTENT;
+import static luxmeter.Util.generateHashCode;
+import static luxmeter.Util.getAbsoluteSystemPath;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 /**
@@ -31,16 +27,6 @@ import static org.apache.commons.lang3.EnumUtils.getEnum;
  * </ul>
  */
 final class DefaultHandler implements HttpHandler {
-
-    public static final int NO_BODY_CONTENT = -1;
-
-    // allows you to see on first sight which requests are supported
-    // additionally you don't need to bother with null checks (s. below)
-    private enum RequestMethod {
-        GET,
-        HEAD
-    }
-
     private final Path rootDir;
 
     public DefaultHandler(@Nonnull Path rootDir) {
@@ -50,50 +36,17 @@ final class DefaultHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         RequestMethod requestMethod = getEnum(RequestMethod.class, exchange.getRequestMethod().toUpperCase());
-
-        validateRequestMethod(requestMethod);
-
-        // TODO add etag validation (w/etag is not supported)
-
         if (EnumSet.of(RequestMethod.HEAD, RequestMethod.GET).contains(requestMethod)) {
-            Path absolutePath = getAbsoluteSystemPath(exchange.getRequestURI());
+            Path absolutePath = getAbsoluteSystemPath(rootDir, exchange.getRequestURI());
             File fileOrDirectory = absolutePath.toFile();
-
-            validateFile(fileOrDirectory);
 
             if (fileOrDirectory.isDirectory()) {
                 listFiles(exchange, requestMethod, absolutePath);
             }
             // is file
             else {
-                String hashCode = generateHashCode(fileOrDirectory);
-                if (hashCode != null) {
-                    exchange.getResponseHeaders().add("ETag", hashCode);
-                }
-                boolean hashCodeIsUnchanged = exchange.getRequestHeaders()
-                        .getOrDefault("If-none-match", Collections.emptyList()).stream()
-                        .findFirst()
-                        .map(requestedHashCode -> hashCode != null && Objects.equals(requestedHashCode, hashCode))
-                        .orElse(false);
-                if (hashCodeIsUnchanged) {
-                    exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
-                }
-                else {
-                    sendFile(exchange, requestMethod, fileOrDirectory);
-                }
+                sendFile(exchange, requestMethod, fileOrDirectory);
             }
-        }
-    }
-
-    private void validateRequestMethod(@Nullable RequestMethod requestMethod) {
-        if (requestMethod == null) {
-            throw new RequestException(HttpURLConnection.HTTP_BAD_REQUEST);
-        }
-    }
-
-    private void validateFile(@Nonnull File fileOrDirectory) {
-        if (!fileOrDirectory.exists()) {
-            throw new RequestException(HttpURLConnection.HTTP_NOT_FOUND);
         }
     }
 
@@ -103,6 +56,10 @@ final class DefaultHandler implements HttpHandler {
         long responseLength = file.length();
         String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file);
         exchange.getResponseHeaders().add("Content-Type", contentType);
+        String hashCode = generateHashCode(file);
+        if (hashCode != null) {
+            exchange.getResponseHeaders().add("ETag", hashCode);
+        }
 
         if (requestMethod == RequestMethod.HEAD) {
             exchange.getResponseHeaders().add("Content-Length", "" + responseLength);
@@ -118,34 +75,6 @@ final class DefaultHandler implements HttpHandler {
                 }
             }
         }
-    }
-
-    // TODO it is not necessary to generate the hash again if the file didn't change since the last time we send it
-    // --> add caching of meta data (last modified date can be retrieved from the file system)
-    private String generateHashCode(File file) {
-        MessageDigest digest = null;
-        // why do stream twice for a single resource?
-        // --> we can't generate the hashCode adhoc when we stream the data to the client
-        // since the hash code needs to be send first in the header response
-        // --> to avoid this stream we could read all the content of the resource first into memory
-        // but no one knows how big this data is.
-        // so better stream twice if necessary
-        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
-            byte[] array = new byte[4];
-            digest = MessageDigest.getInstance("MD5");
-            for (int data = in.read(array); data != -1; data = in.read()) {
-                // we better read a single byte since this will crop off all other left-handed bits
-                digest.update(array);
-            }
-        } catch (NoSuchAlgorithmException | IOException e) {
-            e.printStackTrace();
-        }
-
-        String hashCode = null;
-        if (digest != null) {
-            hashCode = DatatypeConverter.printHexBinary(digest.digest());
-        }
-        return hashCode;
     }
 
     private void listFiles(@Nonnull HttpExchange exchange,
@@ -165,15 +94,5 @@ final class DefaultHandler implements HttpHandler {
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, responseLength);
             exchange.getResponseBody().write(output.getBytes());
         }
-    }
-
-    private @Nonnull
-    Path getAbsoluteSystemPath(@Nonnull URI uri) {
-        // the url could also look like http://localhost:8080 instead of http://localhost:8080/
-        String relativePath = uri.getPath();
-        if (uri.getPath().length() > 0) {
-            relativePath = uri.getPath().substring(1); // get rid of the leading '/'
-        }
-        return rootDir.resolve(relativePath);
     }
 }

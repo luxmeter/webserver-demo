@@ -7,6 +7,8 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Objects;
 
+import static luxmeter.Util.NO_BODY_CONTENT;
+
 /**
  * Decorator for a {@link HttpHandler} providing following features:
  * <p>
@@ -36,7 +38,7 @@ final class ContextManager implements HttpHandler {
         }
         catch (RequestException e) {
             e.printStackTrace();
-            exchange.sendResponseHeaders(e.getStatusCode(), -1);
+            exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
             throw e;
         }
         catch (Exception e) {

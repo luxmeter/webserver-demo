@@ -1,4 +1,4 @@
-# Java Webserver Demo2
+# Java Webserver Demo
 
 This is a demo of a simple webserver being only capable of serving static files from a user defined directory.
 It is not meant to be used in any environment. *Its only purpose is to show good coding practices*.
@@ -22,3 +22,9 @@ showing a complete list of all available commands and options.
 `curl --verbose --get http://localhost:8080/index.html`
 
 Serves index.html if the file is available and shows a 404 error otherwise.
+
+## Issues
+
+It is recommended to set the Content-Length equal to the file size even though a HEAD request was made and no response body must be returned.
+The current implementation returns the file size and appends a -1:
+`Content-length: 12 -1`
