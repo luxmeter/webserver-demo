@@ -36,6 +36,12 @@ public class ModifiedSinceFilter extends Filter {
             if (lastModification.isAfter(dateOfInterest.toInstant())) {
                 exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
             }
+            else {
+                chain.doFilter(exchange);
+            }
+        }
+        else {
+            chain.doFilter(exchange);
         }
     }
 

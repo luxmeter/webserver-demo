@@ -19,10 +19,10 @@ import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 
 // TODO add etag validation (w/etag is not supported)
-public class RequestValidator extends Filter {
+public class RequestValidationFilter extends Filter {
     private final Path rootDir;
 
-    public RequestValidator(Path rootDir) {
+    public RequestValidationFilter(Path rootDir) {
         this.rootDir = rootDir;
     }
 

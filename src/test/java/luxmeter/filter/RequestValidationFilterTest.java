@@ -12,8 +12,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.Assert.assertThat;
 
-public class RequestValidatorTest {
-    private RequestValidator testUnit = new RequestValidator(Paths.get(System.getProperty("user.dir")));
+public class RequestValidationFilterTest {
+    private RequestValidationFilter testUnit = new RequestValidationFilter(Paths.get(System.getProperty("user.dir")));
 
     @Test
     public void shouldReturnNotFound() throws IOException {
