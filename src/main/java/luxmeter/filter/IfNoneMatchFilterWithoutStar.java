@@ -2,11 +2,13 @@ package luxmeter.filter;
 
 import com.sun.net.httpserver.HttpExchange;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
 
 import static luxmeter.Util.NO_BODY_CONTENT;
+import static luxmeter.Util.getAbsoluteSystemPath;
 import static luxmeter.Util.getHeaderFieldValues;
 import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
 
@@ -20,11 +22,18 @@ public class IfNoneMatchFilterWithoutStar extends AbstractFilter implements Etag
 
     @Override
     public void doFilter(HttpExchange exchange, Chain chain) throws IOException {
-        String newEtag = anyEtagMatches(rootDir, exchange.getRequestURI(),
-                getHeaderFieldValues(exchange.getRequestHeaders(), IF_NONE_MATCH));
-        if (newEtag == null) {
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
-        } else {
+        Path absolutePath = getAbsoluteSystemPath(rootDir, exchange.getRequestURI());
+        File file = absolutePath.toFile();
+        if (file.isFile()) {
+            String newEtag = anyEtagMatches(file,
+                    getHeaderFieldValues(exchange.getRequestHeaders(), IF_NONE_MATCH));
+            if (newEtag == null) {
+                exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
+            } else {
+                continueChain(exchange, chain);
+            }
+        }
+        else {
             continueChain(exchange, chain);
         }
     }

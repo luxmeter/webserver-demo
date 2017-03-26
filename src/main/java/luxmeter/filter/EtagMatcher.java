@@ -21,10 +21,8 @@ interface EtagMatcher {
      * @param etags etags from the if-match or if-none-match header field
      * @return the etag of the resource if it was not found within the list of etags
      */
-    default String anyEtagMatches(Path rootDir, URI requestUri, List<String> etags) {
-        Path absolutePath = getAbsoluteSystemPath(rootDir, requestUri);
-        File fileOrDirectory = absolutePath.toFile();
-        String hashCode = generateHashCode(fileOrDirectory);
+    default String anyEtagMatches(File file, List<String> etags) {
+        String hashCode = generateHashCode(file);
 
         boolean someEtagMatched = etags.stream()
                 .anyMatch(requestedHashCode -> hashCode != null && Objects.equals(requestedHashCode, hashCode));

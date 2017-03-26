@@ -2,12 +2,14 @@ package luxmeter.filter;
 
 import com.sun.net.httpserver.HttpExchange;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.List;
 
 import static luxmeter.Util.NO_BODY_CONTENT;
+import static luxmeter.Util.getAbsoluteSystemPath;
 import static luxmeter.Util.getHeaderFieldValues;
 import static luxmeter.model.HeaderFieldContants.ETAG;
 import static luxmeter.model.HeaderFieldContants.IF_MATCH;
@@ -24,9 +26,11 @@ public class IfMatchFilterWithoutStar extends AbstractFilter implements EtagMatc
     @Override
     public void doFilter(HttpExchange exchange, Chain chain) throws IOException {
         List<String> etags = getHeaderFieldValues(exchange.getRequestHeaders(), IF_MATCH);
-        if (!etags.isEmpty()) {
-            String newEtag = anyEtagMatches(rootDir, exchange.getRequestURI(),
-                    etags);
+        Path absolutePath = getAbsoluteSystemPath(rootDir, exchange.getRequestURI());
+        File file = absolutePath.toFile();
+
+        if (!etags.isEmpty() && file.isFile()) {
+            String newEtag = anyEtagMatches(file, etags);
             if (newEtag != null) {
                 exchange.getResponseHeaders().add(ETAG, newEtag);
                 exchange.sendResponseHeaders(HttpURLConnection.HTTP_PRECON_FAILED, NO_BODY_CONTENT);
