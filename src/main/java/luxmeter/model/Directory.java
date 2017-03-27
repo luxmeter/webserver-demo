@@ -2,6 +2,7 @@ package luxmeter.model;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -76,6 +77,8 @@ public final class Directory {
         String output = files.stream()
                 .map(p -> rootDir != null ? rootDir.relativize(p) : p)
                 .map(Path::toString)
+                // use unix style (i hope there is no backslash in the file name...)
+                .map(path -> path.replaceAll(File.pathSeparator, "/"))
                 .collect(Collectors.joining("\n"));
         if (!output.isEmpty()) {
             output += "\n";
