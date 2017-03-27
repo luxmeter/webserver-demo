@@ -30,24 +30,38 @@ public class Application {
     private static final String OPT_HELP = "help";
     private static final String OPT_PORT = "port";
     private static final int DEFAULT_PORT = 8080;
+    public static final int EXIT_CODE_FAIL = 1;
+    public static final int EXIT_CODE_SUCCESS = 0;
 
-    public static void main(String[] args) throws IOException, ParseException {
+    public static void main(String[] args) throws IOException {
         configureJulLogger();
 
         CommandLineParser parser = new DefaultParser();
         Options options = createOptions();
-        CommandLine line = parser.parse(options, args);
+        CommandLine line = null;
+        int port = DEFAULT_PORT;
+
+        try {
+            line = parser.parse(options, args);
+            port = getPort(line);
+        } catch (ParseException e) {
+            System.err.println("Can't understand what you want from me. Please take a look on the manual:");
+            printHelpPage(options, EXIT_CODE_FAIL);
+        }
 
         // validate that block-size has been set
         if (line.hasOption(OPT_HELP)) {
-            HelpFormatter formatter = new HelpFormatter();
-            formatter.printHelp("java -jar webserver.jar", options);
-            System.exit(0);
+            printHelpPage(options, EXIT_CODE_SUCCESS);
         }
 
         Path rootDir = getRootDir(line);
-        int port = getPort(line);
         startServer(rootDir, port);
+    }
+
+    private static void printHelpPage(Options options, int exitCode) {
+        HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("java -jar webserver.jar", options);
+        System.exit(exitCode);
     }
 
     private static void startServer(@Nonnull Path rootDir, int port) throws IOException {
