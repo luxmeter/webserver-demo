@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Paths;
 
+import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
@@ -21,7 +22,7 @@ public class RequestValidationFilterTest {
         testUnit.doFilter(httpExchange, null);
         assertThat(httpExchange.getResponseCode(), equalTo(HttpURLConnection.HTTP_NOT_FOUND));
         assertThat(httpExchange.responseBodyToString(),
-                equalTo(RequestValidationFilter.ERROR_MSG_RESOURCE_NOT_FOUND));
+                endsWith(RequestValidationFilter.ERROR_MSG_RESOURCE_NOT_FOUND));
     }
 
     @Test
@@ -31,6 +32,6 @@ public class RequestValidationFilterTest {
         testUnit.doFilter(httpExchange, null);
         assertThat(httpExchange.getResponseCode(), equalTo(HttpURLConnection.HTTP_BAD_METHOD));
         assertThat(httpExchange.responseBodyToString(),
-                equalTo(RequestValidationFilter.ERROR_MSG_NOT_SUPPORTED_REQUEST));
+                endsWith(RequestValidationFilter.ERROR_MSG_NOT_SUPPORTED_REQUEST));
     }
 }
