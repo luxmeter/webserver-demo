@@ -92,6 +92,8 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <finalName>webserver</finalName>
+                    <appendAssemblyId>false</appendAssemblyId>
                     <archive>
                         <manifest>
                             <mainClass>luxmeter.Application</mainClass>

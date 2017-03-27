@@ -3,16 +3,13 @@ package luxmeter.handler;
 import com.sun.net.httpserver.HttpHandler;
 import luxmeter.model.HttpExchangeMock;
 import org.hamcrest.Matchers;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.List;
-import java.util.Objects;
 
 import static luxmeter.model.HeaderFieldContants.ETAG;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -22,11 +19,8 @@ import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.Assert.assertThat;
 
 public class DefaultHandlerTest {
-    private HttpHandler testUnit = new DefaultHandler(
+    private final HttpHandler testUnit = new DefaultHandler(
             Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
-
-    @Rule
-    public ExpectedException exception = ExpectedException.none();
 
     @Test
     public void shouldListFilesRecursively() throws IOException {
@@ -75,12 +69,9 @@ public class DefaultHandlerTest {
     private void checkHeader(HttpExchangeMock httpExchange) {
         List<String> responseHeader = httpExchange.responseHeaderToList();
 
-        // TODO fix this behaviour of HttpServer
-        String length = Objects.equals(httpExchange.getRequestMethod(), "GET") ? "12" : "12 -1";
-
         // notice that the mime-type is also checked that can be configured via mime.types
         assertThat(responseHeader, contains(
-                equalToIgnoringCase("Content-Length: " + length),
+                equalToIgnoringCase("Content-Length: 12"),
                 equalToIgnoringCase("Content-Type: text/markdown"),
                 equalToIgnoringCase(ETAG + ": ECCD66D6803584426248217359708D8C")));
         assertThat(httpExchange.getResponseCode(), Matchers.equalTo(HttpURLConnection.HTTP_OK));

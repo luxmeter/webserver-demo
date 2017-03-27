@@ -12,9 +12,13 @@ import static luxmeter.Util.getAbsoluteSystemPath;
 import static luxmeter.Util.getHeaderFieldValues;
 import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
 
-// star operator -> resource must not exist
-// but since this demo only serves static files a 404 error is raised beforehand
-// which makes the star-operator obsolete
+/**
+ * Filter for the If-None-Match header-field.
+ * Notice that the star-operator is obsolete in this demo
+ * since server only serves existing static files.
+ *
+ * If any of the provided etags match a `NOT MODIFIED` is returned.
+ */
 public class IfNoneMatchFilterWithoutStar extends AbstractFilter implements EtagMatcher{
     public IfNoneMatchFilterWithoutStar(Path rootDir) {
         super(rootDir);
@@ -22,7 +26,7 @@ public class IfNoneMatchFilterWithoutStar extends AbstractFilter implements Etag
 
     @Override
     public void doFilter(HttpExchange exchange, Chain chain) throws IOException {
-        Path absolutePath = getAbsoluteSystemPath(rootDir, exchange.getRequestURI());
+        Path absolutePath = getAbsoluteSystemPath(getRootDir(), exchange.getRequestURI());
         File file = absolutePath.toFile();
         if (file.isFile()) {
             String newEtag = anyEtagMatches(file,

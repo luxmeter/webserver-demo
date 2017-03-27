@@ -19,28 +19,30 @@ import static luxmeter.Util.getAbsoluteSystemPath;
 import static luxmeter.model.HeaderFieldContants.CONNECTION;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
-
+/**
+ * Validates incoming requests, e.g. if the requested file exists and the requested method is supported.
+ */
 public class RequestValidationFilter extends AbstractFilter {
-    private static final Logger logger = LoggerFactory.getLogger(RequestValidationFilter.class);
-    public static final String ERROR_MSG_NOT_SUPPORTED_REQUEST = "The requested method is currently not supported :(";
-    public static final String ERROR_MSG_RESOURCE_NOT_FOUND = "URL neither points to an existing directory nor file.";
+    static final Logger logger = LoggerFactory.getLogger(RequestValidationFilter.class);
+    static final String ERROR_MSG_NOT_SUPPORTED_REQUEST = "The requested method is currently not supported :(";
+    static final String ERROR_MSG_RESOURCE_NOT_FOUND = "URL neither points to an existing directory nor file.";
 
     // makes the validation routine a bit easier to handle
     // each validation can force the request to be aborted with an appropriate status message
     private static final class ValidationException extends RuntimeException {
         private final int statusCode;
         private final String message;
-        public ValidationException(int statusCode) {
+        ValidationException(int statusCode) {
             this(statusCode, null);
         }
 
-        public ValidationException(int statusCode, String message) {
+        ValidationException(int statusCode, String message) {
             super("" + statusCode);
             this.statusCode = statusCode;
             this.message = message;
         }
 
-        public int getStatusCode() {
+        int getStatusCode() {
             return statusCode;
         }
 
@@ -71,7 +73,7 @@ public class RequestValidationFilter extends AbstractFilter {
             checkMethodIsSupported(requestMethod);
 
             if (EnumSet.of(RequestMethod.HEAD, RequestMethod.GET).contains(requestMethod)) {
-                Path absolutePath = getAbsoluteSystemPath(rootDir, exchange.getRequestURI());
+                Path absolutePath = getAbsoluteSystemPath(getRootDir(), exchange.getRequestURI());
                 File fileOrDirectory = absolutePath.toFile();
                 checkFileOrDirectoryExists(fileOrDirectory);
             }

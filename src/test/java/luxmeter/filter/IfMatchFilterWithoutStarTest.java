@@ -14,7 +14,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class IfMatchFilterWithoutStarTest {
-    private IfMatchFilterWithoutStar testUnit = new IfMatchFilterWithoutStar(
+    private final IfMatchFilterWithoutStar testUnit = new IfMatchFilterWithoutStar(
             Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
 
     @Test

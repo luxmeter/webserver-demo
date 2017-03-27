@@ -13,7 +13,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertThat;
 
 public class RequestValidationFilterTest {
-    private RequestValidationFilter testUnit = new RequestValidationFilter(Paths.get(System.getProperty("user.dir")));
+    private final RequestValidationFilter testUnit = new RequestValidationFilter(Paths.get(System.getProperty("user.dir")));
 
     @Test
     public void shouldReturnNotFound() throws IOException {

@@ -15,6 +15,12 @@ import static luxmeter.Util.*;
 import static luxmeter.model.HeaderFieldContants.IF_MODIFIED_SINCE;
 import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
 
+/**
+ * Filter for the If-Modified-Since header-field.
+ *
+ * If the requested resource has NOT been modified since the last time the client saw it,
+ * `NOT MODIFIED` is returned.
+ */
 public class ModifiedSinceFilter extends AbstractFilter {
     public ModifiedSinceFilter(Path rootDir) {
         super(rootDir);
@@ -32,17 +38,17 @@ public class ModifiedSinceFilter extends AbstractFilter {
         Optional<String> modifiedSince = getHeaderFieldValues(
                 exchange.getRequestHeaders(), IF_MODIFIED_SINCE).stream().findFirst();
         if (modifiedSince.isPresent()) {
-            Path absolutePath = getAbsoluteSystemPath(rootDir, exchange.getRequestURI());
+            Path absolutePath = getAbsoluteSystemPath(getRootDir(), exchange.getRequestURI());
             File fileOrDirectory = absolutePath.toFile();
 
             // http://stackoverflow.com/questions/1930158/how-to-parse-date-from-http-last-modified-header
             ZonedDateTime dateOfInterest = ZonedDateTime.parse(modifiedSince.get(), DateTimeFormatter.RFC_1123_DATE_TIME);
             Instant lastModification = Instant.ofEpochMilli(fileOrDirectory.lastModified());
             if (lastModification.isAfter(dateOfInterest.toInstant())) {
-                exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
+                continueChain(exchange, chain);
             }
             else {
-                continueChain(exchange, chain);
+                exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
             }
         }
         else {

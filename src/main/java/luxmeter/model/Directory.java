@@ -18,9 +18,9 @@ import java.util.stream.Collectors;
  * Useful when a client requests to see the content of a directory and its subdirectories.
  */
 public final class Directory {
+    private final List<Path> files = new ArrayList<>();
+    private final List<Directory> subDirectories = new ArrayList<>();
     private Directory parent;
-    private List<Path> files = new ArrayList<>();
-    private List<Directory> subDirectories = new ArrayList<>();
     private Path path;
 
     private Directory() {

@@ -14,7 +14,7 @@ import static org.junit.Assert.assertThat;
 
 public class IfNoneMatchFilterWithoutStarTest {
 
-    private IfNoneMatchFilterWithoutStar testUnit = new IfNoneMatchFilterWithoutStar(
+    private final IfNoneMatchFilterWithoutStar testUnit = new IfNoneMatchFilterWithoutStar(
             Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
 
     @Test

@@ -6,9 +6,11 @@ import com.sun.net.httpserver.HttpExchange;
 import java.io.IOException;
 import java.nio.file.Path;
 
-// To share code. Would have preferred a default interface here but it is needed to extend Filter anyway
+/**
+ * Parent of all Filterer.
+ */
 public abstract class AbstractFilter extends Filter {
-    protected final Path rootDir;
+    private final Path rootDir;
 
     protected AbstractFilter(Path rootDir) {
         this.rootDir = rootDir;
@@ -24,5 +26,9 @@ public abstract class AbstractFilter extends Filter {
     @Override
     public String description() {
         return getClass().getName();
+    }
+
+    public Path getRootDir() {
+        return rootDir;
     }
 }

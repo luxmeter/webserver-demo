@@ -15,9 +15,13 @@ import static luxmeter.model.HeaderFieldContants.ETAG;
 import static luxmeter.model.HeaderFieldContants.IF_MATCH;
 
 
-// star operator -> resource needs to exist
-// but since this demo only serves static files a 404 error is raised beforehand
-// which makes the star-operator obsolete
+/**
+ * Filter for the If-Match header-field.
+ * Notice that the star-operator is obsolete in this demo
+ * since server only serves existing static files.
+ *
+ * If none of the provided etags match a `PRECONDITION FAILED` is returned.
+ */
 public class IfMatchFilterWithoutStar extends AbstractFilter implements EtagMatcher {
     public IfMatchFilterWithoutStar(Path rootDir) {
         super(rootDir);
@@ -26,7 +30,7 @@ public class IfMatchFilterWithoutStar extends AbstractFilter implements EtagMatc
     @Override
     public void doFilter(HttpExchange exchange, Chain chain) throws IOException {
         List<String> etags = getHeaderFieldValues(exchange.getRequestHeaders(), IF_MATCH);
-        Path absolutePath = getAbsoluteSystemPath(rootDir, exchange.getRequestURI());
+        Path absolutePath = getAbsoluteSystemPath(getRootDir(), exchange.getRequestURI());
         File file = absolutePath.toFile();
 
         if (!etags.isEmpty() && file.isFile()) {

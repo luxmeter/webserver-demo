@@ -15,8 +15,9 @@ import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.EnumSet;
 
-import static luxmeter.model.HeaderFieldContants.ETAG;
 import static luxmeter.Util.*;
+import static luxmeter.model.HeaderFieldContants.CONTENT_TYPE;
+import static luxmeter.model.HeaderFieldContants.ETAG;
 import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 /**
@@ -54,7 +55,10 @@ public final class DefaultHandler implements HttpHandler {
 
     private void closeResources(HttpExchange exchange) throws IOException {
         exchange.getRequestBody().close();
-        exchange.getResponseBody().close();
+        // otherwise an IO exception is thrown by PlaceholderOutputStream
+        if (exchange.getRequestMethod().equalsIgnoreCase("GET")) {
+            exchange.getResponseBody().close();
+        }
         exchange.close();
     }
 
@@ -62,33 +66,25 @@ public final class DefaultHandler implements HttpHandler {
                           @Nonnull RequestMethod requestMethod,
                           @Nonnull File file) throws IOException {
         long responseLength = file.length();
-        String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file);
-        exchange.getResponseHeaders().add("Content-Type", contentType);
         String hashCode = generateHashCode(file);
         if (hashCode != null) {
             exchange.getResponseHeaders().add(ETAG, hashCode);
         }
-
-        if (requestMethod == RequestMethod.HEAD) {
-            processHeadRequest(exchange, responseLength);
-        }
-        // is GET
-        else {
-            processGetRequest(exchange, file, responseLength);
-        }
-    }
-
-    private void processHeadRequest(@Nonnull HttpExchange exchange, long responseLength) throws IOException {
-        exchange.getResponseHeaders().add("Content-Length", "" + responseLength);
-        exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, NO_BODY_CONTENT);
-    }
-
-    private void processGetRequest(@Nonnull HttpExchange exchange, @Nonnull File file, long responseLength) throws IOException {
+        // the length  is also set for head requests (also expected by the RFC)
+        // ignore the warning from ServerImpl
         exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, responseLength);
-        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
-            // Charset charset = Charset.forName(new TikaEncodingDetector().guessEncoding(in));
-            for (int data = in.read(); data != -1; data = in.read()) {
-                exchange.getResponseBody().write(data);
+        String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file);
+        exchange.getResponseHeaders().add(CONTENT_TYPE, contentType);
+        processGetRequest(exchange, requestMethod, file);
+    }
+
+    private void processGetRequest(@Nonnull HttpExchange exchange, @Nonnull RequestMethod requestMethod, @Nonnull File file) throws IOException {
+        if (requestMethod == RequestMethod.GET) {
+            try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
+                // Charset charset = Charset.forName(new TikaEncodingDetector().guessEncoding(in));
+                for (int data = in.read(); data != -1; data = in.read()) {
+                    exchange.getResponseBody().write(data);
+                }
             }
         }
     }
@@ -99,14 +95,12 @@ public final class DefaultHandler implements HttpHandler {
         // TODO render to HTML page
         Directory directory = Directory.listFiles(absolutePath);
         String output = directory.toString(rootDir);
-        long responseLength = output.length();
+        exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, output.length());
         if (requestMethod == RequestMethod.HEAD) {
-            exchange.getResponseHeaders().add("Content-Type", "text/plain");
-            processHeadRequest(exchange, responseLength);
+            exchange.getResponseHeaders().add(CONTENT_TYPE, "text/plain");
         }
         // is GET
         else {
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, responseLength);
             exchange.getResponseBody().write(output.getBytes());
         }
     }

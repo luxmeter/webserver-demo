@@ -10,7 +10,7 @@ It is not meant to be used in any environment. *Its only purpose is to show good
 
 ## Usage
 
-`java -jar webserver.jar start`
+`java -jar webserver.jar`
 
 Executing this command will start the server on **port 8080** using the current working directory as root.
 Use the `--rootdir` option if you want another directory to be root.
@@ -58,7 +58,7 @@ curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
 
 ```
 curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
--H 'If-Modified-Since: Wed, 21 Oct 2015 07:28:00 GMT' \
+-H 'If-Modified-Since: Wed, 21 Oct 2099 07:28:00 GMT' \
 -H 'Connection: close'
 ```
 
@@ -70,9 +70,3 @@ curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
 -H 'If-Modified-Since: Wed, 21 Oct 2099 07:28:00 GMT' \
 -H 'Connection: keep-alive'
 ```
-
-## Issues
-
-It is recommended to set the Content-Length equal to the file size even though a HEAD request was made and no response body must be returned.
-The current implementation returns the file size and appends a -1:
-`Content-length: 12 -1`
