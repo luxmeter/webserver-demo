@@ -9,7 +9,6 @@ import java.net.URI;
 import java.nio.file.Paths;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.isEmptyOrNullString;
 import static org.junit.Assert.assertThat;
 
 public class RequestValidationFilterTest {
@@ -21,14 +20,17 @@ public class RequestValidationFilterTest {
                 URI.create("http://localhost:8080/res_does_not_exist"), "GET");
         testUnit.doFilter(httpExchange, null);
         assertThat(httpExchange.getResponseCode(), equalTo(HttpURLConnection.HTTP_NOT_FOUND));
-        assertThat(httpExchange.responseBodyToString(), isEmptyOrNullString());
+        assertThat(httpExchange.responseBodyToString(),
+                equalTo(RequestValidationFilter.ERROR_MSG_RESOURCE_NOT_FOUND));
     }
+
     @Test
     public void shouldReturnBadRequest() throws IOException {
         HttpExchangeMock httpExchange = new HttpExchangeMock(
                 URI.create("http://localhost:8080/some_file.md"), "NOT_SUPPORTED_REQUEST");
         testUnit.doFilter(httpExchange, null);
         assertThat(httpExchange.getResponseCode(), equalTo(HttpURLConnection.HTTP_BAD_METHOD));
-        assertThat(httpExchange.responseBodyToString(), isEmptyOrNullString());
+        assertThat(httpExchange.responseBodyToString(),
+                equalTo(RequestValidationFilter.ERROR_MSG_NOT_SUPPORTED_REQUEST));
     }
 }

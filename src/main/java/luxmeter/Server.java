@@ -7,7 +7,6 @@ import luxmeter.filter.IfMatchFilterWithoutStar;
 import luxmeter.filter.IfNoneMatchFilterWithoutStar;
 import luxmeter.filter.ModifiedSinceFilter;
 import luxmeter.filter.RequestValidationFilter;
-import luxmeter.handler.ContextManager;
 import luxmeter.handler.DefaultHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,6 @@ public class Server {
         HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
         HttpHandler handler = new DefaultHandler(rootDir);
         // handles RequestExceptions and frees Input- and Output-streams
-        handler = ContextManager.decorate(handler);
         HttpContext context = server.createContext("/", handler);
         // TODO add spring injection to dynamically load filterer
         context.getFilters().add(new RequestValidationFilter(rootDir));

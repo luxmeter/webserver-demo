@@ -2,7 +2,6 @@ package luxmeter.filter;
 
 import com.sun.net.httpserver.HttpExchange;
 import luxmeter.Util;
-import luxmeter.model.RequestException;
 import luxmeter.model.RequestMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +22,41 @@ import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 public class RequestValidationFilter extends AbstractFilter {
     private static final Logger logger = LoggerFactory.getLogger(RequestValidationFilter.class);
+    public static final String ERROR_MSG_NOT_SUPPORTED_REQUEST = "The requested method is currently not supported :(";
+    public static final String ERROR_MSG_RESOURCE_NOT_FOUND = "URL neither points to an existing directory nor file.";
+
+    // makes the validation routine a bit easier to handle
+    // each validation can force the request to be aborted with an appropriate status message
+    private static final class ValidationException extends RuntimeException {
+        private final int statusCode;
+        private final String message;
+        public ValidationException(int statusCode) {
+            this(statusCode, null);
+        }
+
+        public ValidationException(int statusCode, String message) {
+            super("" + statusCode);
+            this.statusCode = statusCode;
+            this.message = message;
+        }
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        @Override
+        public String getMessage() {
+            return message;
+        }
+
+        @Override
+        public String toString() {
+            return "ValidationException{" +
+                    "statusCode=" + statusCode +
+                    ", message='" + message + '\'' +
+                    '}';
+        }
+    }
 
     public RequestValidationFilter(Path rootDir) {
         super(rootDir);
@@ -41,9 +75,16 @@ public class RequestValidationFilter extends AbstractFilter {
                 File fileOrDirectory = absolutePath.toFile();
                 checkFileOrDirectoryExists(fileOrDirectory);
             }
-        } catch (RequestException e) {
-            logger.error(String.format("Request validation failed. Returning with %s.", e.getStatusCode()), e);
-            exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
+        } catch (ValidationException e) {
+            logger.error(String.format("Request validation failed: ", e.getStatusCode()), e);
+            if (e.getMessage() == null) {
+                exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
+            }
+            else {
+                byte[] bytes = e.getMessage().getBytes();
+                exchange.sendResponseHeaders(e.getStatusCode(), bytes.length);
+                exchange.getResponseBody().write(bytes);
+            }
         }
 
         // if no exception has been thrown yet:
@@ -63,19 +104,21 @@ public class RequestValidationFilter extends AbstractFilter {
 
     private void checkNonNull(HttpExchange exchange) {
         if (exchange == null) {
-            throw new RequestException(HttpURLConnection.HTTP_INTERNAL_ERROR);
+            throw new ValidationException(HttpURLConnection.HTTP_INTERNAL_ERROR);
         }
     }
 
     private void checkMethodIsSupported(@Nullable RequestMethod requestMethod) {
         if (requestMethod == null) {
-            throw new RequestException(HttpURLConnection.HTTP_BAD_METHOD);
+            throw new ValidationException(HttpURLConnection.HTTP_BAD_METHOD,
+                    ERROR_MSG_NOT_SUPPORTED_REQUEST);
         }
     }
 
     private void checkFileOrDirectoryExists(@Nonnull File fileOrDirectory) {
         if (!fileOrDirectory.exists()) {
-            throw new RequestException(HttpURLConnection.HTTP_NOT_FOUND);
+            throw new ValidationException(HttpURLConnection.HTTP_NOT_FOUND,
+                    ERROR_MSG_RESOURCE_NOT_FOUND);
         }
     }
 }

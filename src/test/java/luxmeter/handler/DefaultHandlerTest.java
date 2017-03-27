@@ -22,8 +22,8 @@ import static org.hamcrest.Matchers.equalToIgnoringCase;
 import static org.junit.Assert.assertThat;
 
 public class DefaultHandlerTest {
-    private HttpHandler testUnit = ContextManager.decorate(
-            new DefaultHandler(Paths.get(System.getProperty("user.dir")).resolve("src/test/resources")));
+    private HttpHandler testUnit = new DefaultHandler(
+            Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
 
     @Rule
     public ExpectedException exception = ExpectedException.none();
