@@ -1,21 +1,36 @@
 # Java Webserver Demo
 
 This is a demo of a simple webserver being only capable of serving static files from a user defined directory.
-It is not meant to be used in any environment. *Its only purpose is to show good coding practices*.
+It is not meant to be used in any real environment. *Its only purpose is to show good coding and documentation practices*.
 
 **Features**:
-* Understands GET and HEAD methods
+* Can process GET and HEAD requests
     * Lists recursively all files and subdirectories if the URL points to a directory
-* Understands If-Match, If-Non-Match, If-Modified-Since header-fields *for all static files*
+* Can process If-Match, If-Non-Match and If-Modified-Since header-fields *for all static files*
+* Can keep the connection alive
+
+## Technical Design
+It was required for this demo to implement the webserver without the use of third party libraries 
+dedicated for this usecase. However, it was allowed to use libraries like Apache Commons for the sake of convenience.
+Fortunately, the JDK provides a simple HTTP server (HttpServer) which means it is not needed to start from scratch.
+It allows the developer to focus on the HTTP request processing rather than the TCP/IP handling and request parsing.
+
+### Key components
+* Application - The entry point of application providing the CLI interface for user interaction.
+* HttpServer - A simple server implementation from the JDK handling the connections and the HTML parsing.
+* Filter - Filterer can be attached to the HttpServer to process sequential the request before any Handler comes into play.
+They can also abort further processing if necessary.
+* Handler - Handles finally the filtered request (s. DefaultHandler).
+
+Besides that, there have been left several TODOs and comments in the code to give a hint of the thought process. 
 
 ## Usage
 
 `java -jar webserver.jar`
 
 Executing this command will start the server on **port 8080** using the current working directory as root.
-Use the `--rootdir` option if you want another directory to be root.
-Without any options the help page will be printed (same as with `-h` or `--help`) 
-showing a complete list of all available commands and options.
+Use the `--rootdir` option if you want to change the directory.
+Use `-h` or `--help` to get a complete list of all available commands and options.
 
 ## Rquest Examples
 
