@@ -35,7 +35,7 @@ public final class Directory {
         return listFiles(null, absoluteDirPath);
     }
 
-    private static @Nonnull Directory listFiles(@Nullable Directory parent, @Nonnull Path absoluteDirPath) {
+    private static @Nonnull Directory listFiles(Directory parent, @Nonnull Path absoluteDirPath) {
         Directory directory = new Directory();
         directory.parent = parent;
         directory.path = absoluteDirPath;

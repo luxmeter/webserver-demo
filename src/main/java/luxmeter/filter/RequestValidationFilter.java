@@ -2,7 +2,7 @@ package luxmeter.filter;
 
 import com.sun.net.httpserver.HttpExchange;
 import luxmeter.Util;
-import luxmeter.model.RequestMethod;
+import luxmeter.model.SupportedRequestMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,6 @@ import java.util.EnumSet;
 import static luxmeter.Util.NO_BODY_CONTENT;
 import static luxmeter.Util.getAbsoluteSystemPath;
 import static luxmeter.model.HeaderFieldContants.CONNECTION;
-import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 /**
  * Validates incoming requests, e.g. if the requested file exists and the requested method is supported.
@@ -69,10 +68,10 @@ public class RequestValidationFilter extends AbstractFilter {
         try {
             checkNonNull(exchange);
 
-            RequestMethod requestMethod = getEnum(RequestMethod.class, exchange.getRequestMethod().toUpperCase());
+            SupportedRequestMethod requestMethod = SupportedRequestMethod.of(exchange.getRequestMethod());
             checkMethodIsSupported(requestMethod);
 
-            if (EnumSet.of(RequestMethod.HEAD, RequestMethod.GET).contains(requestMethod)) {
+            if (EnumSet.of(SupportedRequestMethod.HEAD, SupportedRequestMethod.GET).contains(requestMethod)) {
                 Path absolutePath = getAbsoluteSystemPath(getRootDir(), exchange.getRequestURI());
                 File fileOrDirectory = absolutePath.toFile();
                 checkFileOrDirectoryExists(fileOrDirectory);
@@ -110,7 +109,7 @@ public class RequestValidationFilter extends AbstractFilter {
         }
     }
 
-    private void checkMethodIsSupported(@Nullable RequestMethod requestMethod) {
+    private void checkMethodIsSupported(@Nullable SupportedRequestMethod requestMethod) {
         if (requestMethod == null) {
             throw new ValidationException(HttpURLConnection.HTTP_BAD_METHOD,
                     ERROR_MSG_NOT_SUPPORTED_REQUEST);

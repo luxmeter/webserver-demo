@@ -3,6 +3,7 @@ package luxmeter.filter;
 import com.sun.net.httpserver.Filter;
 import com.sun.net.httpserver.HttpExchange;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
 
@@ -12,7 +13,7 @@ import java.nio.file.Path;
 public abstract class AbstractFilter extends Filter {
     private final Path rootDir;
 
-    protected AbstractFilter(Path rootDir) {
+    protected AbstractFilter(@Nonnull Path rootDir) {
         this.rootDir = rootDir;
     }
 
@@ -28,7 +29,7 @@ public abstract class AbstractFilter extends Filter {
         return getClass().getName();
     }
 
-    public Path getRootDir() {
+    public @Nonnull Path getRootDir() {
         return rootDir;
     }
 }

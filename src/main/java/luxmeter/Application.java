@@ -10,6 +10,7 @@ import luxmeter.filter.RequestValidationFilter;
 import luxmeter.handler.DefaultHandler;
 import org.apache.commons.cli.*;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -49,7 +50,7 @@ public class Application {
         startServer(rootDir, port);
     }
 
-    private static void startServer(Path rootDir, int port) throws IOException {
+    private static void startServer(@Nonnull Path rootDir, int port) throws IOException {
         System.out.println("Root Directory: " + rootDir);
         System.out.println(String.format("Ready to serve: %s\n", "http://localhost:"+port));
 
@@ -88,7 +89,7 @@ public class Application {
         return options;
     }
 
-    private static Path getRootDir(CommandLine line) {
+    private static Path getRootDir(@Nonnull CommandLine line) {
         Path rootDir = Paths.get(line.getOptionValue(OPT_ROOT_DIR, System.getProperty("user.dir")));
         if (!rootDir.toFile().isDirectory()) {
              System.err.println(String.format("Don\'t fool me. %s does not exist.", rootDir.toAbsolutePath()));
@@ -97,7 +98,7 @@ public class Application {
         return rootDir;
     }
 
-    private static int getPort(CommandLine line) throws ParseException {
+    private static int getPort(@Nonnull CommandLine line) throws ParseException {
         Number number = (Number) line.getParsedOptionValue(OPT_PORT);
         int port = DEFAULT_PORT;
         if (number != null) {

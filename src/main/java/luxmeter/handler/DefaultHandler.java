@@ -3,7 +3,7 @@ package luxmeter.handler;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import luxmeter.model.Directory;
-import luxmeter.model.RequestMethod;
+import luxmeter.model.SupportedRequestMethod;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.Nonnull;
@@ -15,10 +15,10 @@ import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.EnumSet;
 
-import static luxmeter.Util.*;
+import static luxmeter.Util.generateHashCode;
+import static luxmeter.Util.getAbsoluteSystemPath;
 import static luxmeter.model.HeaderFieldContants.CONTENT_TYPE;
 import static luxmeter.model.HeaderFieldContants.ETAG;
-import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 /**
  * Simple HttpHandler serving static files:
@@ -37,8 +37,8 @@ public final class DefaultHandler implements HttpHandler {
 
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        RequestMethod requestMethod = getEnum(RequestMethod.class, exchange.getRequestMethod().toUpperCase());
-        if (EnumSet.of(RequestMethod.HEAD, RequestMethod.GET).contains(requestMethod)) {
+        SupportedRequestMethod requestMethod = SupportedRequestMethod.of(exchange.getRequestMethod());
+        if (EnumSet.of(SupportedRequestMethod.HEAD, SupportedRequestMethod.GET).contains(requestMethod)) {
             Path absolutePath = getAbsoluteSystemPath(rootDir, exchange.getRequestURI());
             File fileOrDirectory = absolutePath.toFile();
 
@@ -53,7 +53,7 @@ public final class DefaultHandler implements HttpHandler {
         closeResources(exchange);
     }
 
-    private void closeResources(HttpExchange exchange) throws IOException {
+    private void closeResources(@Nonnull HttpExchange exchange) throws IOException {
         exchange.getRequestBody().close();
         // otherwise an IO exception is thrown by PlaceholderOutputStream
         if (exchange.getRequestMethod().equalsIgnoreCase("GET")) {
@@ -63,7 +63,7 @@ public final class DefaultHandler implements HttpHandler {
     }
 
     private void sendFile(@Nonnull HttpExchange exchange,
-                          @Nonnull RequestMethod requestMethod,
+                          @Nonnull SupportedRequestMethod requestMethod,
                           @Nonnull File file) throws IOException {
         long responseLength = file.length();
         String hashCode = generateHashCode(file);
@@ -78,8 +78,8 @@ public final class DefaultHandler implements HttpHandler {
         processGetRequest(exchange, requestMethod, file);
     }
 
-    private void processGetRequest(@Nonnull HttpExchange exchange, @Nonnull RequestMethod requestMethod, @Nonnull File file) throws IOException {
-        if (requestMethod == RequestMethod.GET) {
+    private void processGetRequest(@Nonnull HttpExchange exchange,SupportedRequestMethod requestMethod, @Nonnull File file) throws IOException {
+        if (requestMethod == SupportedRequestMethod.GET) {
             try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
                 // Charset charset = Charset.forName(new TikaEncodingDetector().guessEncoding(in));
                 for (int data = in.read(); data != -1; data = in.read()) {
@@ -90,13 +90,13 @@ public final class DefaultHandler implements HttpHandler {
     }
 
     private void listFiles(@Nonnull HttpExchange exchange,
-                           @Nonnull RequestMethod requestMethod,
+                           SupportedRequestMethod requestMethod,
                            @Nonnull Path absolutePath) throws IOException {
         // TODO render to HTML page
         Directory directory = Directory.listFiles(absolutePath);
         String output = directory.toString(rootDir);
         exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, output.length());
-        if (requestMethod == RequestMethod.HEAD) {
+        if (requestMethod == SupportedRequestMethod.HEAD) {
             exchange.getResponseHeaders().add(CONTENT_TYPE, "text/plain");
         }
         // is GET

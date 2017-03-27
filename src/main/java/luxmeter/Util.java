@@ -21,6 +21,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+/**
+ * Provides convenient methods like the access of header-fields for which different spelling variations might exist.
+ */
 public final class Util {
     public static final int NO_BODY_CONTENT = -1;
     public static final int NO_ACTIONS_TAKEN = -1;
@@ -30,7 +33,7 @@ public final class Util {
      * @return transforms the requestedUrl with the help of rootDir to an absolute system path.
      */
     public static @Nonnull
-    Path getAbsoluteSystemPath(Path rootDir, @Nonnull URI requestedUrl) {
+    Path getAbsoluteSystemPath(@Nonnull Path rootDir, @Nonnull URI requestedUrl) {
         // the url could also look like http://localhost:8080 instead of http://localhost:8080/
         String relativePath = requestedUrl.getPath();
         if (requestedUrl.getPath().length() > 0) {
@@ -44,7 +47,7 @@ public final class Util {
      */
     // TODO it is not necessary to generate the hash again if the file didn't change since the last time we send it
     // --> add caching of meta data (last modified date can be retrieved from the file system)
-    public static String generateHashCode(File file) {
+    public static String generateHashCode(@Nonnull File file) {
         MessageDigest digest = null;
         // why do stream twice for a single resource?
         // --> we can't generate the hashCode adhoc when we stream the data to the client
@@ -88,7 +91,7 @@ public final class Util {
     }
 
     // checks all variations of the key and returns the first found one
-    private static Optional<String> getHeaderFieldKey(Headers headers, String key) {
+    private static Optional<String> getHeaderFieldKey(@Nonnull Headers headers, @Nonnull String key) {
         String allLowerCase = key.toLowerCase();
         String allUpperCase = key.toUpperCase();
         String onlyFirstUpper = onlyFirstToUpper(allLowerCase);   // preferred version of the JDK HttpServerImpl
@@ -99,7 +102,7 @@ public final class Util {
                 .findFirst();
     }
 
-    private static String allFirstCharsToUpper(String key) {
+    private static String allFirstCharsToUpper(@Nonnull String key) {
         if (key.length() < 1) {
             return key;
         }
@@ -115,7 +118,7 @@ public final class Util {
         return allFirstUpper;
     }
 
-    private static String onlyFirstToUpper(String key) {
+    private static String onlyFirstToUpper(@Nonnull String key) {
         if (key.length() < 1) {
             return key;
         }
