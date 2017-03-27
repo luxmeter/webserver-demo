@@ -78,7 +78,7 @@ public final class Directory {
                 .map(p -> rootDir != null ? rootDir.relativize(p) : p)
                 .map(Path::toString)
                 // use unix style (i hope there is no backslash in the file name...)
-                .map(path -> path.replaceAll(File.pathSeparator, "/"))
+                .map(path -> path.replace(File.separatorChar, '/'))
                 .collect(Collectors.joining("\n"));
         if (!output.isEmpty()) {
             output += "\n";
