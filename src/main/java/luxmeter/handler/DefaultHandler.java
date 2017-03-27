@@ -70,17 +70,25 @@ public final class DefaultHandler implements HttpHandler {
         }
 
         if (requestMethod == RequestMethod.HEAD) {
-            exchange.getResponseHeaders().add("Content-Length", "" + responseLength);
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, NO_BODY_CONTENT);
+            processHeadRequest(exchange, responseLength);
         }
         // is GET
         else {
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, responseLength);
-            try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
-                // Charset charset = Charset.forName(new TikaEncodingDetector().guessEncoding(in));
-                for (int data = in.read(); data != -1; data = in.read()) {
-                    exchange.getResponseBody().write(data);
-                }
+            processGetRequest(exchange, file, responseLength);
+        }
+    }
+
+    private void processHeadRequest(@Nonnull HttpExchange exchange, long responseLength) throws IOException {
+        exchange.getResponseHeaders().add("Content-Length", "" + responseLength);
+        exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, NO_BODY_CONTENT);
+    }
+
+    private void processGetRequest(@Nonnull HttpExchange exchange, @Nonnull File file, long responseLength) throws IOException {
+        exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, responseLength);
+        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
+            // Charset charset = Charset.forName(new TikaEncodingDetector().guessEncoding(in));
+            for (int data = in.read(); data != -1; data = in.read()) {
+                exchange.getResponseBody().write(data);
             }
         }
     }
@@ -94,8 +102,7 @@ public final class DefaultHandler implements HttpHandler {
         long responseLength = output.length();
         if (requestMethod == RequestMethod.HEAD) {
             exchange.getResponseHeaders().add("Content-Type", "text/plain");
-            exchange.getResponseHeaders().add("Content-Length", "" + responseLength);
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, NO_BODY_CONTENT);
+            processHeadRequest(exchange, responseLength);
         }
         // is GET
         else {

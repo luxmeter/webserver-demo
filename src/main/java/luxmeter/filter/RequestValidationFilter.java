@@ -76,12 +76,12 @@ public class RequestValidationFilter extends AbstractFilter {
                 checkFileOrDirectoryExists(fileOrDirectory);
             }
         } catch (ValidationException e) {
-            logger.error(String.format("Request validation failed: ", e.getStatusCode()), e);
+            logger.error(String.format("Request (%s) validation failed: %s", exchange.getRequestURI().getPath(), e.getStatusCode()), e);
             if (e.getMessage() == null) {
                 exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
             }
             else {
-                byte[] bytes = e.getMessage().getBytes();
+                byte[] bytes = (e.getStatusCode() +": " + e.getMessage()).getBytes();
                 exchange.sendResponseHeaders(e.getStatusCode(), bytes.length);
                 exchange.getResponseBody().write(bytes);
             }

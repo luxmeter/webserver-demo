@@ -19,14 +19,16 @@ import java.util.concurrent.Executors;
 public class Server {
     private static final Logger logger = LoggerFactory.getLogger(Server.class);
     private final Path rootDir;
+    private final int port;
 
-    public Server(Path rootDir) {
+    public Server(Path rootDir, int port) {
         this.rootDir = rootDir;
+        this.port = port;
     }
 
     public void start() throws IOException {
         // default implementation is already able to handle keep-alive requests
-        HttpServer server = HttpServer.create(new InetSocketAddress(8080), 0);
+        HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
         HttpHandler handler = new DefaultHandler(rootDir);
         // handles RequestExceptions and frees Input- and Output-streams
         HttpContext context = server.createContext("/", handler);

@@ -1,23 +1,18 @@
 package luxmeter;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.cli.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import java.util.logging.LogManager;
-import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
+import static org.apache.commons.cli.PatternOptionBuilder.NUMBER_VALUE;
 
 public class Application {
     private static final String HELP_FILE = "/help.txt";
@@ -26,59 +21,68 @@ public class Application {
     private static final Logger logger = LoggerFactory.getLogger(Application.class);
     private static final HashSet<String> ALLOWED_OPTIONS = new HashSet<>(asList(OPT_ROOT_DIR, OPT_HELP));
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, ParseException {
         configureJulLogger();
-        List<String> options = checkArguments(args);
-        Path rootDir = getRootDir(options);
+
+        CommandLineParser parser = new DefaultParser();
+        Options options = createOptions();
+        CommandLine line = parser.parse(options, args);
+
+        // validate that block-size has been set
+        if (line.hasOption("help")) {
+            HelpFormatter formatter = new HelpFormatter();
+            formatter.printHelp("java -jar webserver.jar", options);
+            System.exit(0);
+        }
+
+        Path rootDir = getRootDir(line);
+        int port = getPort(line);
         System.out.println("Root Directory: " + rootDir);
-        System.out.println(String.format("Ready to serve: %s\n", "http://localhost:8080/"));
-        new Server(rootDir).start();
+        System.out.println(String.format("Ready to serve: %s\n", "http://localhost:"+port));
+        new Server(rootDir, port).start();
+    }
+
+    private static Options createOptions() {
+        // create the Options
+        Options options = new Options();
+        options.addOption(Option.builder()
+                .longOpt("rootdir")
+                .desc("The root directory of the server (default cwd).")
+                .hasArg()
+                .argName("DIR")
+                .build());
+        options.addOption(Option.builder("p")
+                .longOpt("port")
+                .desc("Port of this server (default 8080).")
+                .hasArg()
+                .argName("PORT")
+                .type(NUMBER_VALUE)
+                .build());
+        options.addOption("h", "help", false, "Shows this help page.");
+        return options;
+    }
+
+    private static Path getRootDir(CommandLine line) {
+        Path rootDir = Paths.get(line.getOptionValue("rootdir"));
+        if (!rootDir.toFile().isDirectory()) {
+             System.err.println(String.format("Don\'t fool me. %s does not exist.", rootDir.toAbsolutePath()));
+            System.exit(1);
+        }
+        return rootDir;
+    }
+
+    private static int getPort(CommandLine line) throws ParseException {
+        Number number = (Number) line.getParsedOptionValue("port");
+        int port = 8080;
+        if (number != null) {
+            port = Integer.valueOf("" + number);
+        }
+
+        return port;
     }
 
     private static void configureJulLogger() throws IOException {
         InputStream config = Application.class.getResourceAsStream("/jul-logger.properties");
         LogManager.getLogManager().readConfiguration(config);
     }
-
-    private static List<String> checkArguments(String[] args) throws IOException {
-        List<String> arguments = asList(args);
-        Set<String> options = arguments.stream()
-                // make '--rootDir=something' to '--rootDir'
-                // or something invalid --> in this case the help page is presented
-                .map(arg -> arg.trim().replaceAll("(--.*)=.*", "$1"))
-                .collect(Collectors.toSet());
-        if (!arguments.isEmpty()
-                && (arguments.contains(OPT_HELP) || !ALLOWED_OPTIONS.containsAll(options))) {
-            printHelpPage();
-            System.exit(1);
-        }
-        return arguments;
-    }
-
-    private static Path getRootDir(Collection<String> arguments) {
-        Path path = arguments.stream()
-                .filter(option -> option.startsWith(OPT_ROOT_DIR))
-                .map(option -> option.substring(OPT_ROOT_DIR.length() + 1))
-                // in case someone wrote --rootDir='something'
-                .map(option -> option.replaceAll("['|\"]", StringUtils.EMPTY))
-                .map(Paths::get)
-                .findFirst()
-                .orElse(Paths.get(System.getProperty("user.dir")));
-        if (!path.toFile().isDirectory()) {
-            System.err.println("Don\'t fool me. Enter an existing directory");
-            System.exit(1);
-        }
-        return path;
-    }
-
-    private static void printHelpPage() throws IOException {
-        BufferedReader reader =
-                new BufferedReader(new InputStreamReader(Application.class.getResourceAsStream(HELP_FILE)));
-        StringBuilder output = new StringBuilder();
-        for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-            output.append(line + "\n");
-        }
-        System.out.println(output.toString());
-    }
-
 }
