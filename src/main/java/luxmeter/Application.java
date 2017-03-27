@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,6 +14,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.LogManager;
 import java.util.stream.Collectors;
 
 import static java.util.Arrays.asList;
@@ -25,11 +27,17 @@ public class Application {
     private static final HashSet<String> ALLOWED_OPTIONS = new HashSet<>(asList(OPT_ROOT_DIR, OPT_HELP));
 
     public static void main(String[] args) throws IOException {
+        configureJulLogger();
         List<String> options = checkArguments(args);
         Path rootDir = getRootDir(options);
         System.out.println("Root Directory: " + rootDir);
         System.out.println(String.format("Ready to serve: %s\n", "http://localhost:8080/"));
         new Server(rootDir).start();
+    }
+
+    private static void configureJulLogger() throws IOException {
+        InputStream config = Application.class.getResourceAsStream("/jul-logger.properties");
+        LogManager.getLogManager().readConfiguration(config);
     }
 
     private static List<String> checkArguments(String[] args) throws IOException {
