@@ -8,6 +8,10 @@ public enum SupportedRequestMethod {
     GET,
     HEAD;
 
+    /**
+     * @param method name of the request method
+     * @return equivalent SupportedRequestMethod otherwise null
+     */
     public static SupportedRequestMethod of(String method) {
         if (method != null) {
             try {

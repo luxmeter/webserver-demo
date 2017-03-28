@@ -90,6 +90,7 @@ public class RequestValidationFilter extends AbstractFilter {
 
         // if no exception has been thrown yet:
         if (exchange.getResponseCode() == -1) {
+            // TODO no one would expect this code in a validator -> move it
             // workaround
             // no need to check other Connection values since the ServerImpl handles that already
             Util.getHeaderFieldValues(exchange.getRequestHeaders(), CONNECTION).stream().findFirst()

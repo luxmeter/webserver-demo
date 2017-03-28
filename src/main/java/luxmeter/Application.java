@@ -25,6 +25,7 @@ import static org.apache.commons.cli.PatternOptionBuilder.NUMBER_VALUE;
  * Entry point of this application.
  * Provides a simple CLI interface for the user and starts the server.
  */
+// TODO let function return Optional that might return null, e.g. SupportedRequestMethod#of
 public class Application {
     private static final String OPT_ROOT_DIR = "rootdir";
     private static final String OPT_HELP = "help";
