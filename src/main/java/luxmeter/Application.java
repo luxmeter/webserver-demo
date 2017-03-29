@@ -50,7 +50,6 @@ public class Application {
             printHelpPage(options, EXIT_CODE_FAIL);
         }
 
-        // validate that block-size has been set
         if (line.hasOption(OPT_HELP)) {
             printHelpPage(options, EXIT_CODE_SUCCESS);
         }
