@@ -1,7 +1,7 @@
 # Java Webserver Demo
 
 This is a demo of a simple webserver being only capable of serving static files from a user defined directory.
-It is not meant to be used in any real environment. *Its only purpose is to show good coding and documentation practices*.
+It is not meant to be used in any real environment. *It exists only for educational purpose*.
 
 **Features**:
 * Can process GET and HEAD requests
