@@ -28,6 +28,8 @@ public class RequestValidationFilter extends AbstractFilter {
 
     // makes the validation routine a bit easier to handle
     // each validation can force the request to be aborted with an appropriate status message
+    // TODO move code related to the exception handling to the abstract class and make a protected method
+    // which the filterer have to use for their logic. thex will have to throw the exception to stop the chaining
     private static final class ValidationException extends RuntimeException {
         private final int statusCode;
         private final String message;
