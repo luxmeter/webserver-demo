@@ -1,20 +1,19 @@
 package luxmeter.filter;
 
-import luxmeter.model.HttpExchangeMock;
-import org.junit.Test;
+import static java.net.HttpURLConnection.HTTP_NOT_MODIFIED;
+import static luxmeter.Util.NO_RESONSE_RETURNED_YET;
+import static luxmeter.model.HeaderFieldContants.IF_MODIFIED_SINCE;
+import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Paths;
 
-import static luxmeter.Util.NO_ACTIONS_TAKEN;
-import static luxmeter.model.HeaderFieldContants.IF_MODIFIED_SINCE;
-import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
-public class ModifiedSinceFilterTest {
+import luxmeter.model.HttpExchangeMock;
+
+public class ModifiedSinceFilterTest extends AbstractFilterTest {
     private final ModifiedSinceFilter testUnit = new ModifiedSinceFilter(Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
 
     @Test
@@ -24,8 +23,8 @@ public class ModifiedSinceFilterTest {
         // the file was definitely created before :D
         httpExchange.getRequestHeaders().remove(IF_NONE_MATCH); // server prefers etags to dates
         httpExchange.getRequestHeaders().add(IF_MODIFIED_SINCE, "Wed, 21 Oct 2099 07:28:00 GMT");
-        testUnit.doFilter(httpExchange, null);
-        assertThat(httpExchange.getResponseCode(), equalTo(HttpURLConnection.HTTP_NOT_MODIFIED));
+        testUnit.doFilter(httpExchange, getMockedChain());
+        checkResponseCodeAndChaining(httpExchange.getResponseCode(), HTTP_NOT_MODIFIED);
     }
 
     @Test
@@ -37,7 +36,7 @@ public class ModifiedSinceFilterTest {
         // the file was definitely created after :D
         httpExchange.getRequestHeaders().remove(IF_NONE_MATCH);
         httpExchange.getRequestHeaders().add(IF_MODIFIED_SINCE, "Wed, 21 Oct 2015 07:28:00 GMT");
-        testUnit.doFilter(httpExchange, null);
-        assertThat(httpExchange.getResponseCode(), equalTo(NO_ACTIONS_TAKEN));
+        testUnit.doFilter(httpExchange, getMockedChain());
+        checkResponseCodeAndChaining(httpExchange.getResponseCode(), NO_RESONSE_RETURNED_YET);
     }
 }

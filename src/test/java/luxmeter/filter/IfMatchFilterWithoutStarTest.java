@@ -1,19 +1,18 @@
 package luxmeter.filter;
 
-import luxmeter.model.HttpExchangeMock;
-import org.junit.Test;
+import static java.net.HttpURLConnection.HTTP_PRECON_FAILED;
+import static luxmeter.Util.NO_RESONSE_RETURNED_YET;
+import static luxmeter.model.HeaderFieldContants.IF_MATCH;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.file.Paths;
 
-import static luxmeter.Util.NO_ACTIONS_TAKEN;
-import static luxmeter.model.HeaderFieldContants.IF_MATCH;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
+import org.junit.Test;
 
-public class IfMatchFilterWithoutStarTest {
+import luxmeter.model.HttpExchangeMock;
+
+public class IfMatchFilterWithoutStarTest extends AbstractFilterTest {
     private final IfMatchFilterWithoutStar testUnit = new IfMatchFilterWithoutStar(
             Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
 
@@ -23,8 +22,8 @@ public class IfMatchFilterWithoutStarTest {
         HttpExchangeMock httpExchange = new HttpExchangeMock(
                 URI.create("http://localhost:8080/some_file.md"), "GET");
         httpExchange.getRequestHeaders().add(IF_MATCH, "abc");
-        testUnit.doFilter(httpExchange, null);
-        assertThat(httpExchange.getResponseCode(), equalTo(HttpURLConnection.HTTP_PRECON_FAILED));
+        testUnit.doFilter(httpExchange, getMockedChain());
+        checkResponseCodeAndChaining(httpExchange.getResponseCode(), HTTP_PRECON_FAILED);
     }
 
     @Test
@@ -32,7 +31,8 @@ public class IfMatchFilterWithoutStarTest {
         HttpExchangeMock httpExchange = new HttpExchangeMock(
                 URI.create("http://localhost:8080/some_file.md"), "GET");
         httpExchange.getRequestHeaders().add(IF_MATCH, "ECCD66D6803584426248217359708D8C");
-        testUnit.doFilter(httpExchange, null);
-        assertThat(httpExchange.getResponseCode(), equalTo(NO_ACTIONS_TAKEN));
+        testUnit.doFilter(httpExchange, getMockedChain());
+        checkResponseCodeAndChaining(httpExchange.getResponseCode(), NO_RESONSE_RETURNED_YET);
+
     }
 }
