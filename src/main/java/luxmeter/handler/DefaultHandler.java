@@ -72,9 +72,7 @@ public final class DefaultHandler implements HttpHandler {
                           @Nonnull File file) throws IOException {
         long responseLength = file.length();
         String hashCode = generateHashCode(file);
-        if (hashCode != null) {
-            exchange.getResponseHeaders().add(ETAG, hashCode);
-        }
+        exchange.getResponseHeaders().add(ETAG, hashCode);
         // the length  is also set for head requests (also expected by the RFC)
         // ignore the warning from ServerImpl
         exchange.sendResponseHeaders(HTTP_OK, responseLength);

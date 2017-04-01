@@ -27,7 +27,7 @@ interface EtagMatcher {
         String hashCode = generateHashCode(file);
 
         boolean someEtagMatched = etags.stream()
-                .anyMatch(requestedHashCode -> hashCode != null && Objects.equals(requestedHashCode, hashCode));
+                .anyMatch(requestedHashCode -> Objects.equals(requestedHashCode, hashCode));
 
         return someEtagMatched ? Optional.empty() : Optional.of(hashCode);
     }
