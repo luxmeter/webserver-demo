@@ -20,6 +20,9 @@ import java.util.Optional;
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.Nonnull;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import luxmeter.model.Directory;
@@ -34,6 +37,7 @@ import luxmeter.model.SupportedRequestMethod;
  * </ul>
  */
 public final class DefaultHandler implements HttpHandler {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultHandler.class);
     private final Path rootDir;
 
     public DefaultHandler(@Nonnull Path rootDir) {
@@ -91,6 +95,7 @@ public final class DefaultHandler implements HttpHandler {
                 responseStream.write(data);
             }
         }
+        LOGGER.debug("File {} sent", file.toString());
     }
 
     private void listFiles(@Nonnull HttpExchange exchange,
@@ -107,5 +112,6 @@ public final class DefaultHandler implements HttpHandler {
         else {
             exchange.getResponseBody().write(output.getBytes());
         }
+        LOGGER.debug("Listed files in {}", absolutePath);
     }
 }

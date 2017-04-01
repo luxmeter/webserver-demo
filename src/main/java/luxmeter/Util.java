@@ -14,9 +14,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.xml.bind.DatatypeConverter;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.sun.net.httpserver.Headers;
 
 /**
@@ -25,7 +22,6 @@ import com.sun.net.httpserver.Headers;
 public final class Util {
     public static final int NO_BODY_CONTENT = -1;
     public static final int NO_RESONSE_RETURNED_YET = -1;
-    private static final Logger logger = LoggerFactory.getLogger(Util.class);
 
     /**
      * @return transforms the requestedUrl with the help of rootDir to an absolute system path.

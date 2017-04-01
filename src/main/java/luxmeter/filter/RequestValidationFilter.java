@@ -23,7 +23,7 @@ import luxmeter.model.SupportedRequestMethod;
  * Validates incoming requests, e.g. if the requested file exists and the requested method is supported.
  */
 public class RequestValidationFilter extends AbstractFilter {
-    static final Logger logger = LoggerFactory.getLogger(RequestValidationFilter.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RequestValidationFilter.class);
     static final String ERROR_MSG_NOT_SUPPORTED_REQUEST = "The requested method is currently not supported :(";
     static final String ERROR_MSG_RESOURCE_NOT_FOUND = "URL neither points to an existing directory nor file.";
 
@@ -113,7 +113,7 @@ public class RequestValidationFilter extends AbstractFilter {
     }
 
     private void processValidationException(HttpExchange exchange, ValidationException e) throws IOException {
-        logger.error(String.format("Request (%s) validation failed: %s",
+        LOGGER.error(String.format("Request (%s) validation failed: %s",
                 exchange.getRequestURI().getPath(), e.getStatusCode()), e);
         if (e.getMessage() == null) {
             exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);

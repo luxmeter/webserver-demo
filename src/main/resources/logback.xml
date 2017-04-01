@@ -18,6 +18,10 @@
     </root>
 
 
+    <logger name="luxmeter.handler.DefaultHandler" level="debug" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
     <logger name="com.sun.net.httpserver" level="debug" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
