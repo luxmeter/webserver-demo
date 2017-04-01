@@ -30,20 +30,20 @@ public class RequestValidationFilter extends AbstractFilter {
     // makes the validation routine a bit easier to handle
     // each validation can force the request to be aborted with an appropriate status message
     private static final class ValidationException extends RuntimeException {
-        private final int statusCode;
+        private final int responseCode;
         private final String message;
-        ValidationException(int statusCode) {
-            this(statusCode, null);
+        ValidationException(int responseCode) {
+            this(responseCode, null);
         }
 
-        ValidationException(int statusCode, String message) {
-            super("" + statusCode);
-            this.statusCode = statusCode;
+        ValidationException(int responseCode, String message) {
+            super("" + responseCode);
+            this.responseCode = responseCode;
             this.message = message;
         }
 
         int getStatusCode() {
-            return statusCode;
+            return responseCode;
         }
 
         @Override
@@ -54,7 +54,7 @@ public class RequestValidationFilter extends AbstractFilter {
         @Override
         public String toString() {
             return "ValidationException{" +
-                    "statusCode=" + statusCode +
+                    "responseCode=" + responseCode +
                     ", message='" + message + '\'' +
                     '}';
         }
