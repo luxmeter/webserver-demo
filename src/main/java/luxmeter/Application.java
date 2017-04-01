@@ -38,8 +38,8 @@ public class Application {
     private static final String OPT_HELP = "help";
     private static final String OPT_PORT = "port";
     private static final int DEFAULT_PORT = 8080;
-    public static final int EXIT_CODE_FAIL = 1;
-    public static final int EXIT_CODE_SUCCESS = 0;
+    private static final int EXIT_CODE_FAIL = 1;
+    private static final int EXIT_CODE_SUCCESS = 0;
 
     public static void main(String[] args) throws IOException {
         configureJulLogger();
