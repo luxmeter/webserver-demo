@@ -1,16 +1,7 @@
 package luxmeter;
 
-import com.sun.net.httpserver.HttpContext;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
-import luxmeter.filter.IfMatchFilterWithoutStar;
-import luxmeter.filter.IfNoneMatchFilterWithoutStar;
-import luxmeter.filter.ModifiedSinceFilter;
-import luxmeter.filter.RequestValidationFilter;
-import luxmeter.handler.DefaultHandler;
-import org.apache.commons.cli.*;
+import static org.apache.commons.cli.PatternOptionBuilder.NUMBER_VALUE;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetSocketAddress;
@@ -19,13 +10,29 @@ import java.nio.file.Paths;
 import java.util.concurrent.Executors;
 import java.util.logging.LogManager;
 
-import static org.apache.commons.cli.PatternOptionBuilder.NUMBER_VALUE;
+import javax.annotation.Nonnull;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import com.sun.net.httpserver.HttpContext;
+import com.sun.net.httpserver.HttpHandler;
+import com.sun.net.httpserver.HttpServer;
+import luxmeter.filter.IfMatchFilterWithoutStar;
+import luxmeter.filter.IfNoneMatchFilterWithoutStar;
+import luxmeter.filter.ModifiedSinceFilter;
+import luxmeter.filter.RequestValidationFilter;
+import luxmeter.handler.DefaultHandler;
 
 /**
  * Entry point of this application.
  * Provides a simple CLI interface for the user and starts the server.
  */
-// TODO let function return Optional that might return null, e.g. SupportedRequestMethod#of
 public class Application {
     private static final String OPT_ROOT_DIR = "rootdir";
     private static final String OPT_HELP = "help";

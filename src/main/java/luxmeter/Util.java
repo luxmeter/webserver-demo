@@ -1,11 +1,5 @@
 package luxmeter;
 
-import com.sun.net.httpserver.Headers;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.annotation.Nonnull;
-import javax.xml.bind.DatatypeConverter;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,12 +15,20 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+import javax.xml.bind.DatatypeConverter;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.Headers;
+
 /**
  * Provides convenient methods like the access of header-fields for which different spelling variations might exist.
  */
 public final class Util {
     public static final int NO_BODY_CONTENT = -1;
-    public static final int NO_ACTIONS_TAKEN = -1;
+    public static final int NO_RESONSE_RETURNED_YET = -1;
     private static final Logger logger = LoggerFactory.getLogger(Util.class);
 
     /**

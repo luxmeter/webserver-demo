@@ -1,22 +1,23 @@
 package luxmeter.filter;
 
-import com.sun.net.httpserver.HttpExchange;
-import luxmeter.Util;
-import luxmeter.model.SupportedRequestMethod;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static luxmeter.Util.NO_BODY_CONTENT;
+import static luxmeter.Util.getAbsoluteSystemPath;
+import static luxmeter.model.HeaderFieldContants.CONNECTION;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.EnumSet;
 
-import static luxmeter.Util.NO_BODY_CONTENT;
-import static luxmeter.Util.getAbsoluteSystemPath;
-import static luxmeter.model.HeaderFieldContants.CONNECTION;
+import javax.annotation.Nonnull;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.sun.net.httpserver.HttpExchange;
+import luxmeter.Util;
+import luxmeter.model.SupportedRequestMethod;
 
 /**
  * Validates incoming requests, e.g. if the requested file exists and the requested method is supported.
@@ -28,8 +29,6 @@ public class RequestValidationFilter extends AbstractFilter {
 
     // makes the validation routine a bit easier to handle
     // each validation can force the request to be aborted with an appropriate status message
-    // TODO move code related to the exception handling to the abstract class and make a protected method
-    // which the filterer have to use for their logic. thex will have to throw the exception to stop the chaining
     private static final class ValidationException extends RuntimeException {
         private final int statusCode;
         private final String message;
@@ -70,28 +69,14 @@ public class RequestValidationFilter extends AbstractFilter {
         try {
             checkNonNull(exchange);
 
-            SupportedRequestMethod requestMethod = SupportedRequestMethod.of(exchange.getRequestMethod());
-            checkMethodIsSupported(requestMethod);
+            SupportedRequestMethod requestMethod = checkAndGetRequestMethod(exchange.getRequestMethod());
 
             if (EnumSet.of(SupportedRequestMethod.HEAD, SupportedRequestMethod.GET).contains(requestMethod)) {
                 Path absolutePath = getAbsoluteSystemPath(getRootDir(), exchange.getRequestURI());
                 File fileOrDirectory = absolutePath.toFile();
                 checkFileOrDirectoryExists(fileOrDirectory);
             }
-        } catch (ValidationException e) {
-            logger.error(String.format("Request (%s) validation failed: %s", exchange.getRequestURI().getPath(), e.getStatusCode()), e);
-            if (e.getMessage() == null) {
-                exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
-            }
-            else {
-                byte[] bytes = (e.getStatusCode() +": " + e.getMessage()).getBytes();
-                exchange.sendResponseHeaders(e.getStatusCode(), bytes.length);
-                exchange.getResponseBody().write(bytes);
-            }
-        }
 
-        // if no exception has been thrown yet:
-        if (exchange.getResponseCode() == -1) {
             // TODO no one would expect this code in a validator -> move it
             // workaround
             // no need to check other Connection values since the ServerImpl handles that already
@@ -102,8 +87,16 @@ public class RequestValidationFilter extends AbstractFilter {
                         // with exactly this strings
                         exchange.getResponseHeaders().add(CONNECTION, "close");
                     });
-            continueChain(exchange, chain);
+            continueProcessing(exchange, chain);
+        } catch (ValidationException e) {
+            processValidationException(exchange, e);
         }
+    }
+
+    private SupportedRequestMethod checkAndGetRequestMethod(String requestMethod) {
+        return SupportedRequestMethod.of(requestMethod)
+                .orElseThrow(() -> new ValidationException(
+                        HttpURLConnection.HTTP_BAD_METHOD, ERROR_MSG_NOT_SUPPORTED_REQUEST));
     }
 
     private void checkNonNull(HttpExchange exchange) {
@@ -112,17 +105,23 @@ public class RequestValidationFilter extends AbstractFilter {
         }
     }
 
-    private void checkMethodIsSupported(@Nullable SupportedRequestMethod requestMethod) {
-        if (requestMethod == null) {
-            throw new ValidationException(HttpURLConnection.HTTP_BAD_METHOD,
-                    ERROR_MSG_NOT_SUPPORTED_REQUEST);
-        }
-    }
-
     private void checkFileOrDirectoryExists(@Nonnull File fileOrDirectory) {
         if (!fileOrDirectory.exists()) {
             throw new ValidationException(HttpURLConnection.HTTP_NOT_FOUND,
                     ERROR_MSG_RESOURCE_NOT_FOUND);
+        }
+    }
+
+    private void processValidationException(HttpExchange exchange, ValidationException e) throws IOException {
+        logger.error(String.format("Request (%s) validation failed: %s",
+                exchange.getRequestURI().getPath(), e.getStatusCode()), e);
+        if (e.getMessage() == null) {
+            exchange.sendResponseHeaders(e.getStatusCode(), NO_BODY_CONTENT);
+        }
+        else {
+            byte[] bytes = (e.getStatusCode() +": " + e.getMessage()).getBytes();
+            exchange.sendResponseHeaders(e.getStatusCode(), bytes.length);
+            exchange.getResponseBody().write(bytes);
         }
     }
 }

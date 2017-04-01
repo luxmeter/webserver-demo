@@ -1,7 +1,5 @@
 package luxmeter.model;
 
-import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -11,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 /**
  * Model representing a directory with all of its files
@@ -43,8 +43,7 @@ public final class Directory {
             for (Path p : stream) {
                 if (p.toFile().isFile()) {
                     directory.files.add(p);
-                } else {
-                    // TODO should exclude symlinks to prevent endless recursion
+                } else if (!Files.isSymbolicLink(p)) { // prevents endless recursion
                     directory.subDirectories.add(listFiles(directory, p));
                 }
             }
@@ -72,7 +71,7 @@ public final class Directory {
      * @param rootDir The root directory; if none is given, the absolute path is shown.
      * @return List of all files and directories relatively to given root directory.
      */
-    public String toString(@Nullable Path rootDir) {
+    public @Nonnull String toString(Path rootDir) {
         // StringBuilder is not required since the compiler uses it under the hood
         String output = files.stream()
                 .map(p -> rootDir != null ? rootDir.relativize(p) : p)

@@ -1,11 +1,12 @@
 package luxmeter.filter;
 
-import com.sun.net.httpserver.Filter;
-import com.sun.net.httpserver.HttpExchange;
-
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.nio.file.Path;
+
+import javax.annotation.Nonnull;
+
+import com.sun.net.httpserver.Filter;
+import com.sun.net.httpserver.HttpExchange;
 
 /**
  * Parent of all Filterer.
@@ -18,7 +19,7 @@ public abstract class AbstractFilter extends Filter {
     }
 
 
-    protected void continueChain(HttpExchange exchange, Chain chain) throws IOException {
+    protected void continueProcessing(HttpExchange exchange, Chain chain) throws IOException {
         if (chain != null) {
             chain.doFilter(exchange);
         }
@@ -29,7 +30,8 @@ public abstract class AbstractFilter extends Filter {
         return getClass().getName();
     }
 
-    public @Nonnull Path getRootDir() {
+    @Nonnull
+    public Path getRootDir() {
         return rootDir;
     }
 }

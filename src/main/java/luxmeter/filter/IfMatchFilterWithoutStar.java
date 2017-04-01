@@ -1,18 +1,19 @@
 package luxmeter.filter;
 
-import com.sun.net.httpserver.HttpExchange;
+import static luxmeter.Util.NO_BODY_CONTENT;
+import static luxmeter.Util.getAbsoluteSystemPath;
+import static luxmeter.Util.getHeaderFieldValues;
+import static luxmeter.model.HeaderFieldContants.ETAG;
+import static luxmeter.model.HeaderFieldContants.IF_MATCH;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
-import static luxmeter.Util.NO_BODY_CONTENT;
-import static luxmeter.Util.getAbsoluteSystemPath;
-import static luxmeter.Util.getHeaderFieldValues;
-import static luxmeter.model.HeaderFieldContants.ETAG;
-import static luxmeter.model.HeaderFieldContants.IF_MATCH;
+import com.sun.net.httpserver.HttpExchange;
 
 
 /**
@@ -34,16 +35,15 @@ public class IfMatchFilterWithoutStar extends AbstractFilter implements EtagMatc
         File file = absolutePath.toFile();
 
         if (!etags.isEmpty() && file.isFile()) {
-            String newEtag = anyEtagMatches(file, etags);
-            if (newEtag != null) {
-                exchange.getResponseHeaders().add(ETAG, newEtag);
+            Optional<String> newEtag = anyEtagMatches(file, etags);
+            boolean noExistingEtagMatched = newEtag.isPresent();
+            if (noExistingEtagMatched) {
+                exchange.getResponseHeaders().add(ETAG, newEtag.get());
                 exchange.sendResponseHeaders(HttpURLConnection.HTTP_PRECON_FAILED, NO_BODY_CONTENT);
-            } else {
-                continueChain(exchange, chain);
+                return; // interrupt chaining
             }
         }
-        else {
-            continueChain(exchange, chain);
-        }
+
+        continueProcessing(exchange, chain);
     }
 }

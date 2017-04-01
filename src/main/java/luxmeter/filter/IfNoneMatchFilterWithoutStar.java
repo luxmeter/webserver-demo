@@ -1,16 +1,18 @@
 package luxmeter.filter;
 
-import com.sun.net.httpserver.HttpExchange;
+import static luxmeter.Util.NO_BODY_CONTENT;
+import static luxmeter.Util.getAbsoluteSystemPath;
+import static luxmeter.Util.getHeaderFieldValues;
+import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
 
-import static luxmeter.Util.NO_BODY_CONTENT;
-import static luxmeter.Util.getAbsoluteSystemPath;
-import static luxmeter.Util.getHeaderFieldValues;
-import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
+import com.sun.net.httpserver.HttpExchange;
 
 /**
  * Filter for the If-None-Match header-field.
@@ -28,17 +30,17 @@ public class IfNoneMatchFilterWithoutStar extends AbstractFilter implements Etag
     public void doFilter(HttpExchange exchange, Chain chain) throws IOException {
         Path absolutePath = getAbsoluteSystemPath(getRootDir(), exchange.getRequestURI());
         File file = absolutePath.toFile();
+
         if (file.isFile()) {
-            String newEtag = anyEtagMatches(file,
-                    getHeaderFieldValues(exchange.getRequestHeaders(), IF_NONE_MATCH));
-            if (newEtag == null) {
+            List<String> etags = getHeaderFieldValues(exchange.getRequestHeaders(), IF_NONE_MATCH);
+            Optional<String> newEtag = anyEtagMatches(file, etags);
+            boolean existingEtagMatched = !newEtag.isPresent();
+            if (existingEtagMatched) {
                 exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
-            } else {
-                continueChain(exchange, chain);
+                return; // interrupt chaining
             }
         }
-        else {
-            continueChain(exchange, chain);
-        }
+
+        continueProcessing(exchange, chain);
     }
 }
