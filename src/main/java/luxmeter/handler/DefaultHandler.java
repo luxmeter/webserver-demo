@@ -82,12 +82,11 @@ public final class DefaultHandler implements HttpHandler {
         exchange.getResponseHeaders().add(ETAG, hashCode);
         // the length  is also set for head requests (also expected by the RFC)
         // ignore the warning from ServerImpl
-        exchange.sendResponseHeaders(HTTP_OK, responseLength);
         String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file);
         exchange.getResponseHeaders().add(CONTENT_TYPE, contentType);
         exchange.getResponseHeaders().add(LAST_MODIFIED,
                 getLastModifiedDate(file, ZoneId.of("GMT")).format(DateTimeFormatter.RFC_1123_DATE_TIME));
-
+        exchange.sendResponseHeaders(HTTP_OK, responseLength);
         if (supportedRequestMethod == GET) {
             processGetRequest(exchange.getResponseBody(), file);
         }
