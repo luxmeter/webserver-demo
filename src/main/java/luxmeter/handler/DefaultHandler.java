@@ -10,11 +10,9 @@ import static luxmeter.model.HeaderFieldContants.LAST_MODIFIED;
 import static luxmeter.model.SupportedRequestMethod.GET;
 import static luxmeter.model.SupportedRequestMethod.HEAD;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.OutputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -52,14 +50,13 @@ public final class DefaultHandler implements HttpHandler {
         Optional<SupportedRequestMethod> supportedMethod = SupportedRequestMethod.of(exchange.getRequestMethod());
         if (supportedMethod.map(r -> EnumSet.of(HEAD, GET).contains(r)).orElse(false)) {
             Path absolutePath = getAbsoluteSystemPath(rootDir, exchange.getRequestURI());
-            File fileOrDirectory = absolutePath.toFile();
 
-            if (fileOrDirectory.isDirectory()) {
+            if (absolutePath.toFile().isDirectory()) {
                 listFiles(exchange, supportedMethod.get(), absolutePath);
             }
             // is file
             else {
-                sendFile(exchange, supportedMethod.get(), fileOrDirectory);
+                sendFile(exchange, supportedMethod.get(), absolutePath);
             }
         }
         closeResources(exchange);
@@ -76,7 +73,8 @@ public final class DefaultHandler implements HttpHandler {
 
     private void sendFile(@Nonnull HttpExchange exchange,
                           @Nonnull SupportedRequestMethod supportedRequestMethod,
-                          @Nonnull File file) throws IOException {
+                          @Nonnull Path path) throws IOException {
+        File file = path.toFile();
         long responseLength = file.length();
         String hashCode = generateHashCode(file);
         exchange.getResponseHeaders().add(ETAG, hashCode);
@@ -88,18 +86,9 @@ public final class DefaultHandler implements HttpHandler {
                 getLastModifiedDate(file, ZoneId.of("GMT")).format(DateTimeFormatter.RFC_1123_DATE_TIME));
         exchange.sendResponseHeaders(HTTP_OK, responseLength);
         if (supportedRequestMethod == GET) {
-            processGetRequest(exchange.getResponseBody(), file);
+            Files.copy(path, exchange.getResponseBody());
+            LOGGER.debug("File {} sent", file.toString());
         }
-    }
-
-    private void processGetRequest(@Nonnull OutputStream responseStream, @Nonnull File file) throws IOException {
-        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
-            // Charset charset = Charset.forName(new TikaEncodingDetector().guessEncoding(in));
-            for (int data = in.read(); data != -1; data = in.read()) {
-                responseStream.write(data);
-            }
-        }
-        LOGGER.debug("File {} sent", file.toString());
     }
 
     private void listFiles(@Nonnull HttpExchange exchange,
