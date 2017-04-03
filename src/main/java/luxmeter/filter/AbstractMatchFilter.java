@@ -10,6 +10,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
+import javax.annotation.Nonnull;
+
 import com.sun.net.httpserver.HttpExchange;
 
 /**
@@ -48,7 +50,7 @@ public abstract class AbstractMatchFilter extends AbstractFilter {
         }
     }
 
-    private boolean etagMatches(String requestedEtag, String resourceEtag) {
+    private boolean etagMatches(@Nonnull String requestedEtag, String resourceEtag) {
         return resourceEtag != null
                 && (requestedEtag.equals(STAR_OPERATOR) || Objects.equals(requestedEtag, resourceEtag));
     }
@@ -61,6 +63,6 @@ public abstract class AbstractMatchFilter extends AbstractFilter {
      * @return true if the processing of the request should be continued
      * @throws IOException
      */
-    protected abstract boolean shouldContinue(HttpExchange exchange, String resourceEtag,
+    protected abstract boolean shouldContinue(@Nonnull HttpExchange exchange, String resourceEtag,
             boolean someEtagMatched)  throws IOException;
 }
