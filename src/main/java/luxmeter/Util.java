@@ -8,6 +8,9 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
 
@@ -67,7 +70,6 @@ public final class Util {
         return hashCode;
     }
 
-
     /**
      * With this function it is neither needed to try different spelling variants of the key
      * nor to null-check the return value since it will be always a collection returned.
@@ -89,5 +91,17 @@ public final class Util {
                     .orElse(Collections.emptyList());
         }
         return Collections.unmodifiableList(values);
+    }
+
+    /**
+     * @param existingFile real <b>existing</b> file
+     * @param preferredZone zone to convert the local date time to.
+     * @return
+     */
+    @Nonnull
+    public static ZonedDateTime getLastModifiedDate(@Nonnull File existingFile, @Nonnull ZoneId preferredZone) {
+        return ZonedDateTime
+                .ofInstant(Instant.ofEpochMilli(existingFile.lastModified()), ZonedDateTime.now().getZone())
+                .withZoneSameLocal(preferredZone);
     }
 }

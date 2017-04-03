@@ -10,4 +10,5 @@ public final class HeaderFieldContants {
     public static final String ETAG = "Etag";
     public static final String CONNECTION = "Connection";
     public static final String CONTENT_TYPE = "Content-Type";
+    public static final String LAST_MODIFIED = "Last-Modified";
 }

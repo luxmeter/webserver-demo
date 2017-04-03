@@ -3,6 +3,7 @@ package luxmeter.filter;
 import static luxmeter.Util.NO_BODY_CONTENT;
 import static luxmeter.Util.getAbsoluteSystemPath;
 import static luxmeter.Util.getHeaderFieldValues;
+import static luxmeter.Util.getLastModifiedDate;
 import static luxmeter.model.HeaderFieldContants.IF_MODIFIED_SINCE;
 import static luxmeter.model.HeaderFieldContants.IF_NONE_MATCH;
 
@@ -10,7 +11,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.file.Path;
-import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
@@ -40,10 +41,13 @@ public class ModifiedSinceFilter extends AbstractFilter {
                 File fileOrDirectory = absolutePath.toFile();
 
                 // http://stackoverflow.com/questions/1930158/how-to-parse-date-from-http-last-modified-header
+                ZoneId serverZone = ZonedDateTime.now().getZone();
                 ZonedDateTime dateOfInterest = ZonedDateTime
-                        .parse(modifiedSince.get(), DateTimeFormatter.RFC_1123_DATE_TIME);
-                Instant lastModification = Instant.ofEpochMilli(fileOrDirectory.lastModified());
-                if (!lastModification.isAfter(dateOfInterest.toInstant())) {
+                        .parse(modifiedSince.get(), DateTimeFormatter.RFC_1123_DATE_TIME)
+                        .withZoneSameLocal(serverZone);
+
+                ZonedDateTime lastModification = getLastModifiedDate(fileOrDirectory, serverZone);
+                if (!lastModification.isAfter(dateOfInterest)) {
                     exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_MODIFIED, NO_BODY_CONTENT);
                     return;
                 }

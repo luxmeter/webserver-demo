@@ -3,8 +3,10 @@ package luxmeter.handler;
 import static java.net.HttpURLConnection.HTTP_OK;
 import static luxmeter.Util.generateHashCode;
 import static luxmeter.Util.getAbsoluteSystemPath;
+import static luxmeter.Util.getLastModifiedDate;
 import static luxmeter.model.HeaderFieldContants.CONTENT_TYPE;
 import static luxmeter.model.HeaderFieldContants.ETAG;
+import static luxmeter.model.HeaderFieldContants.LAST_MODIFIED;
 import static luxmeter.model.SupportedRequestMethod.GET;
 import static luxmeter.model.SupportedRequestMethod.HEAD;
 
@@ -14,6 +16,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.file.Path;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.EnumSet;
 import java.util.Optional;
 
@@ -33,7 +37,6 @@ import luxmeter.model.SupportedRequestMethod;
  * <ul>
  * <li>Can process GET and HEAD requests</li>
  * <li>Lists recursively all files and subdirectories if the request URL points to a directory</li>
- * <li>Can process following header-fields: ETag, If-Non-Match, If-Modified-Since</li>
  * </ul>
  */
 public final class DefaultHandler implements HttpHandler {
@@ -82,6 +85,8 @@ public final class DefaultHandler implements HttpHandler {
         exchange.sendResponseHeaders(HTTP_OK, responseLength);
         String contentType = MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(file);
         exchange.getResponseHeaders().add(CONTENT_TYPE, contentType);
+        exchange.getResponseHeaders().add(LAST_MODIFIED,
+                getLastModifiedDate(file, ZoneId.of("GMT")).format(DateTimeFormatter.RFC_1123_DATE_TIME));
 
         if (supportedRequestMethod == GET) {
             processGetRequest(exchange.getResponseBody(), file);
