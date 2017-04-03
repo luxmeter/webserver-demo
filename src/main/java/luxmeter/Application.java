@@ -23,8 +23,8 @@ import org.apache.commons.cli.ParseException;
 import com.sun.net.httpserver.HttpContext;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import luxmeter.filter.IfMatchFilterWithoutStar;
-import luxmeter.filter.IfNoneMatchFilterWithoutStar;
+import luxmeter.filter.IfMatchFilterWith;
+import luxmeter.filter.IfNoneMatchFilter;
 import luxmeter.filter.ModifiedSinceFilter;
 import luxmeter.filter.RequestValidationFilter;
 import luxmeter.handler.DefaultHandler;
@@ -83,8 +83,8 @@ public class Application {
         // TODO add spring injection to dynamically load filterer
         context.getFilters().add(new RequestValidationFilter(rootDir));
         context.getFilters().add(new ModifiedSinceFilter(rootDir));
-        context.getFilters().add(new IfNoneMatchFilterWithoutStar(rootDir));
-        context.getFilters().add(new IfMatchFilterWithoutStar(rootDir));
+        context.getFilters().add(new IfNoneMatchFilter(rootDir));
+        context.getFilters().add(new IfMatchFilterWith(rootDir));
         server.setExecutor(Executors.newCachedThreadPool());
 
         server.start();

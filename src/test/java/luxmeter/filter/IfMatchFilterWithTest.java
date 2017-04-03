@@ -12,8 +12,8 @@ import org.junit.Test;
 
 import luxmeter.model.HttpExchangeMock;
 
-public class IfMatchFilterWithoutStarTest extends AbstractFilterTest {
-    private final IfMatchFilterWithoutStar testUnit = new IfMatchFilterWithoutStar(
+public class IfMatchFilterWithTest extends AbstractFilterTest {
+    private final IfMatchFilterWith testUnit = new IfMatchFilterWith(
             Paths.get(System.getProperty("user.dir")).resolve("src/test/resources"));
 
     @Test
@@ -31,6 +31,25 @@ public class IfMatchFilterWithoutStarTest extends AbstractFilterTest {
         HttpExchangeMock httpExchange = new HttpExchangeMock(
                 URI.create("http://localhost:8080/some_file.md"), "GET");
         httpExchange.getRequestHeaders().add(IF_MATCH, "ECCD66D6803584426248217359708D8C");
+        testUnit.doFilter(httpExchange, getMockedChain());
+        checkResponseCodeAndChaining(httpExchange.getResponseCode(), NO_RESONSE_RETURNED_YET);
+
+    }
+
+    @Test
+    public void shouldReturnFailedPreconditionWithStar() throws IOException {
+        HttpExchangeMock httpExchange = new HttpExchangeMock(
+                URI.create("http://localhost:8080/does_not_exist.md"), "GET");
+        httpExchange.getRequestHeaders().add(IF_MATCH, "*");
+        testUnit.doFilter(httpExchange, getMockedChain());
+        checkResponseCodeAndChaining(httpExchange.getResponseCode(), HTTP_PRECON_FAILED);
+    }
+
+    @Test
+    public void shouldPassThePreconditionWithStar() throws IOException {
+        HttpExchangeMock httpExchange = new HttpExchangeMock(
+                URI.create("http://localhost:8080/some_file.md"), "GET");
+        httpExchange.getRequestHeaders().add(IF_MATCH, "*");
         testUnit.doFilter(httpExchange, getMockedChain());
         checkResponseCodeAndChaining(httpExchange.getResponseCode(), NO_RESONSE_RETURNED_YET);
 

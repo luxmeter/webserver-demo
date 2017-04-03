@@ -37,12 +37,14 @@ public final class Util {
     }
 
     /**
-     * @return generates a MD5 hash the given file
+     * @return Generates a MD5 hash of the file's content. Returns null if file does not exist.
      */
     // TODO it is not necessary to generate the hash again if the file didn't change since the last time we send it
     // --> add caching of meta data (last modified date can be retrieved from the file system)
-    @Nonnull
     public static String generateHashCode(@Nonnull File file) {
+        if (!file.isFile()) {
+            return null;
+        }
         MessageDigest digest = null;
         // why do stream twice for a single resource?
         // --> we can't generate the hashCode adhoc when we stream the data to the client

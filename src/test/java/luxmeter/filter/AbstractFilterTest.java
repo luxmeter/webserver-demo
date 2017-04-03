@@ -26,7 +26,7 @@ public abstract class AbstractFilterTest {
     }
 
     protected void checkResponseCodeAndChaining(int actualStatusCode, int expectedStatusCode) throws IOException {
-        assertThat(expectedStatusCode, equalTo(expectedStatusCode));
+        assertThat(actualStatusCode, equalTo(expectedStatusCode));
         if (expectedStatusCode == NO_RESONSE_RETURNED_YET) {
             verify(getMockedChain(), times(1)).doFilter(any());
         }
