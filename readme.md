@@ -82,6 +82,6 @@ curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
 
 ```
 curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
--H 'If-Modified-Since: Wed, 21 Oct 2099 07:28:00 GMT' \
+-H 'If-Modified-Since: Wed, 02 Jul 2014 07:28:00 GMT' \
 -H 'Connection: keep-alive'
 ```

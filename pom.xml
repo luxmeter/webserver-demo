@@ -55,6 +55,12 @@
             <version>2.7.20</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <scope>test</scope>
+            <version>4.5.3</version>
+        </dependency>
         <!--<dependency>-->
             <!--<groupId>org.apache.any23</groupId>-->
             <!--<artifactId>apache-any23-encoding</artifactId>-->

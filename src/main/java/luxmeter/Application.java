@@ -62,7 +62,9 @@ public class Application {
         }
 
         Path rootDir = getRootDir(line);
-        startServer(rootDir, port);
+
+        // allows end-to-end test
+        new Application().startServer(rootDir, port);
     }
 
     private static void printHelpPage(Options options, int exitCode) {
@@ -71,7 +73,7 @@ public class Application {
         System.exit(exitCode);
     }
 
-    private static void startServer(@Nonnull Path rootDir, int port) throws IOException {
+    public HttpServer startServer(@Nonnull Path rootDir, int port) throws IOException {
         System.out.println("Root Directory: " + rootDir);
         System.out.println(String.format("Ready to serve: %s\n", "http://localhost:"+port));
 
@@ -88,6 +90,7 @@ public class Application {
         server.setExecutor(Executors.newCachedThreadPool());
 
         server.start();
+        return server;
     }
 
     private static Options createOptions() {
