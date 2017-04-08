@@ -2,6 +2,7 @@ package luxmeter.filter;
 
 import static java.net.HttpURLConnection.HTTP_PRECON_FAILED;
 import static luxmeter.Util.NO_RESONSE_RETURNED_YET;
+import static luxmeter.model.Constants.ETAG_SOME_FILE;
 import static luxmeter.model.HeaderFieldContants.IF_MATCH;
 
 import java.io.IOException;
@@ -30,7 +31,7 @@ public class IfMatchFilterWithTest extends AbstractFilterTest {
     public void shouldPassThePrecondition() throws IOException {
         HttpExchangeMock httpExchange = new HttpExchangeMock(
                 URI.create("http://localhost:8080/some_file.md"), "GET");
-        httpExchange.getRequestHeaders().add(IF_MATCH, "ECCD66D6803584426248217359708D8C");
+        httpExchange.getRequestHeaders().add(IF_MATCH, ETAG_SOME_FILE);
         testUnit.doFilter(httpExchange, getMockedChain());
         checkResponseCodeAndChaining(httpExchange.getResponseCode(), NO_RESONSE_RETURNED_YET);
 

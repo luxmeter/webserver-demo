@@ -58,7 +58,7 @@ public final class Util {
         try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(file))) {
             byte[] array = new byte[4];
             digest = MessageDigest.getInstance("MD5");
-            for (int data = in.read(array); data != -1; data = in.read()) {
+            for (int data = in.read(array); data != -1; data = in.read(array)) {
                 // we better read a single byte since this will crop off all other left-handed bits
                 digest.update(array);
             }

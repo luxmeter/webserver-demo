@@ -1,5 +1,6 @@
 package luxmeter.handler;
 
+import static luxmeter.model.Constants.ETAG_SOME_FILE;
 import static luxmeter.model.HeaderFieldContants.ETAG;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -60,7 +61,7 @@ public class DefaultHandlerTest {
         HttpExchangeMock httpExchange = new HttpExchangeMock(
                 URI.create("http://localhost:8080/some_file.md"), "GET");
         testUnit.handle(httpExchange);
-        assertThat(httpExchange.responseHeaderToList(), hasItem(ETAG + ": ECCD66D6803584426248217359708D8C"));
+        assertThat(httpExchange.responseHeaderToList(), hasItem(ETAG + ": " + ETAG_SOME_FILE));
     }
 
     private void checkBody(HttpExchangeMock httpExchange) {
@@ -76,7 +77,7 @@ public class DefaultHandlerTest {
                 equalToIgnoringCase("Last-modified: Sun, 26 Mar 2017 10:44:33 GMT"),
                 equalToIgnoringCase("Content-Length: 12"),
                 equalToIgnoringCase("Content-Type: text/markdown"),
-                equalToIgnoringCase(ETAG + ": ECCD66D6803584426248217359708D8C")));
+                equalToIgnoringCase(ETAG + ": " + ETAG_SOME_FILE)));
         assertThat(httpExchange.getResponseCode(), Matchers.equalTo(HttpURLConnection.HTTP_OK));
     }
 }

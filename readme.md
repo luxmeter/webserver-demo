@@ -49,7 +49,7 @@ curl -v 'http://localhost:8080/src/test/resources' \
 
 ```
 curl -v 'http://localhost:8080/src/test/resources/some_file.md' \
--H 'If-None-Match: ECCD66D6803584426248217359708D8C' \
+-H 'If-None-Match: 86FB269D190D2C85F6E0468CECA42A20' \
 -H 'Connection: close'
 ```
 
