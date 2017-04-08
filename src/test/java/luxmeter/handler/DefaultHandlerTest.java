@@ -4,21 +4,25 @@ import static luxmeter.model.Constants.ETAG_SOME_FILE;
 import static luxmeter.model.HeaderFieldContants.ETAG;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.equalToIgnoringCase;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.velocity.VelocityContext;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 
 import com.sun.net.httpserver.HttpHandler;
+import luxmeter.Util;
 import luxmeter.model.HttpExchangeMock;
 
 public class DefaultHandlerTest {
@@ -32,11 +36,17 @@ public class DefaultHandlerTest {
         testUnit.handle(httpExchange);
         String responseBody = httpExchange.responseBodyToString();
 
-        assertThat(httpExchange.responseHeaderToList(),
-                contains(equalToIgnoringCase("Content-Length: 39")));
-        assertThat(responseBody, equalTo(
-                "some_file.md\n" +
-                        "some_dir/another_file.txt\n"));
+        assertThat(httpExchange.responseHeaderToList(), containsInAnyOrder(
+                equalToIgnoringCase("Content-type: text/html"),
+                equalToIgnoringCase("Content-Length: 281")));
+
+        VelocityContext context = new VelocityContext();
+        ArrayList<Path> files = new ArrayList<>();
+        files.add(Paths.get("some_file.md"));
+        files.add(Paths.get("some_dir/another_file.txt"));
+        context.put("files", files);
+        String expectedResponse = Util.renderToHtml("/list_dir_template.vm", context);
+        assertThat(responseBody, is(equalTo(expectedResponse)));
     }
 
     @Test

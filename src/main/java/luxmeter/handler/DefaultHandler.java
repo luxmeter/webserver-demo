@@ -4,6 +4,7 @@ import static java.net.HttpURLConnection.HTTP_OK;
 import static luxmeter.Util.generateHashCode;
 import static luxmeter.Util.getAbsoluteSystemPath;
 import static luxmeter.Util.getLastModifiedDate;
+import static luxmeter.Util.renderToHtml;
 import static luxmeter.model.HeaderFieldContants.CONTENT_TYPE;
 import static luxmeter.model.HeaderFieldContants.ETAG;
 import static luxmeter.model.HeaderFieldContants.LAST_MODIFIED;
@@ -22,6 +23,7 @@ import java.util.Optional;
 import javax.activation.MimetypesFileTypeMap;
 import javax.annotation.Nonnull;
 
+import org.apache.velocity.VelocityContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,13 +98,13 @@ public final class DefaultHandler implements HttpHandler {
                            @Nonnull Path absolutePath) throws IOException {
         // TODO render to HTML page
         Directory directory = Directory.listFiles(absolutePath);
-        String output = directory.toString(rootDir);
+        VelocityContext velocityContext = new VelocityContext();
+        velocityContext.put("files", directory.getFiles(true));
+        String output = renderToHtml("/list_dir_template.vm", velocityContext);
         exchange.sendResponseHeaders(HTTP_OK, output.length());
-        if (supportedRequestMethod == HEAD) {
-            exchange.getResponseHeaders().add(CONTENT_TYPE, "text/plain");
-        }
+        exchange.getResponseHeaders().add(CONTENT_TYPE, "text/html");
         // is GET
-        else {
+        if (supportedRequestMethod == GET) {
             exchange.getResponseBody().write(output.getBytes());
         }
         LOGGER.debug("Listed files in {}", absolutePath);

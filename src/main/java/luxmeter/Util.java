@@ -4,6 +4,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.net.URI;
 import java.nio.file.Path;
 import java.security.MessageDigest;
@@ -13,9 +14,13 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Properties;
 
 import javax.annotation.Nonnull;
 import javax.xml.bind.DatatypeConverter;
+
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
 
 import com.sun.net.httpserver.Headers;
 
@@ -25,6 +30,22 @@ import com.sun.net.httpserver.Headers;
 public final class Util {
     public static final int NO_BODY_CONTENT = -1;
     public static final int NO_RESONSE_RETURNED_YET = -1;
+
+    private static final VelocityEngine velocityEngine;
+
+    static {
+        velocityEngine = new VelocityEngine();
+        Properties p = new Properties();
+        p.setProperty("resource.loader", "class");
+        p.setProperty("class.resource.loader.class", "org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+        velocityEngine.init(p);
+    }
+
+    public static String renderToHtml(String template, VelocityContext context) {
+        StringWriter writer = new StringWriter();
+        velocityEngine.getTemplate(template).merge(context, writer);
+        return writer.toString();
+    }
 
     /**
      * @return transforms the requestedUrl with the help of rootDir to an absolute system path.

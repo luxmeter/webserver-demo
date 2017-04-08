@@ -1,6 +1,5 @@
 package luxmeter.model;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
@@ -31,11 +30,13 @@ public final class Directory {
      * @param absoluteDirPath system path to the directory
      * @return {@link} a {@link Directory} object which can be used to list all files of the given path.
      */
-    public static @Nonnull Directory listFiles(@Nonnull Path absoluteDirPath) {
+    public static @Nonnull
+    Directory listFiles(@Nonnull Path absoluteDirPath) {
         return listFiles(null, absoluteDirPath);
     }
 
-    private static @Nonnull Directory listFiles(Directory parent, @Nonnull Path absoluteDirPath) {
+    private static @Nonnull
+    Directory listFiles(Directory parent, @Nonnull Path absoluteDirPath) {
         Directory directory = new Directory();
         directory.parent = parent;
         directory.path = absoluteDirPath;
@@ -43,7 +44,8 @@ public final class Directory {
             for (Path p : stream) {
                 if (p.toFile().isFile()) {
                     directory.files.add(p);
-                } else if (!Files.isSymbolicLink(p)) { // prevents endless recursion
+                }
+                else if (!Files.isSymbolicLink(p)) { // prevents endless recursion
                     directory.subDirectories.add(listFiles(directory, p));
                 }
             }
@@ -55,12 +57,28 @@ public final class Directory {
         return directory;
     }
 
-    public Directory getParent() {
-        return parent;
+    /**
+     * @return List of all files and directories relatively to given root directory.
+     * @see #getFiles(boolean)
+     */
+    public List<Path> getFiles() {
+        return getFiles(false);
     }
 
-    public List<Path> getFiles() {
-        return Collections.unmodifiableList(files);
+    /**
+     * @param recursively true if all files within subdirectories should be listed too
+     * @return List of all files and directories (recursively) relatively to given root directory.
+     */
+    public List<Path> getFiles(boolean recursively) {
+        Path root = getRoot(this);
+        List<Path> result = files.stream().map(f -> root.relativize(f)).collect(Collectors.toList());
+        if (recursively) {
+            List<Path> relativeFiles = result;
+            result = subDirectories.stream()
+                    .flatMap(d -> d.getFiles(true).stream())
+                    .collect(() -> relativeFiles, List::add, List::addAll);
+        }
+        return Collections.unmodifiableList(result);
     }
 
     public List<Directory> getSubDirectories() {
@@ -68,30 +86,16 @@ public final class Directory {
     }
 
     /**
-     * @param rootDir The root directory; if none is given, the absolute path is shown.
-     * @return List of all files and directories relatively to given root directory.
-     */
-    public @Nonnull String toString(Path rootDir) {
-        // StringBuilder is not required since the compiler uses it under the hood
-        String output = files.stream()
-                .map(p -> rootDir != null ? rootDir.relativize(p) : p)
-                .map(Path::toString)
-                // use unix style (i hope there is no backslash in the file name...)
-                .map(path -> path.replace(File.separatorChar, '/'))
-                .collect(Collectors.joining("\n"));
-        if (!output.isEmpty()) {
-            output += "\n";
-        }
-        output += subDirectories.stream()
-                .map(directory -> directory.toString(rootDir))
-                .collect(Collectors.joining());
-        return output;
-    }
-
-    /**
      * @return the absolute system path of this directory
      */
     public String toString() {
         return this.path.toString();
+    }
+
+    private static Path getRoot(Directory dir) {
+        if (dir.parent == null) {
+            return dir.path;
+        }
+        return getRoot(dir.parent);
     }
 }
